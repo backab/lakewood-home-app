@@ -1,0 +1,23 @@
+/* Custom styles for 7015 Phillips Rd SW Home App */
+
+/* 1. Hide scrollbar to make it feel like a native mobile app */
+/* For Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* For IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* 2. Custom animation for system status */
+@keyframes subtle-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.status-pulse {
+    animation: subtle-pulse 3s ease-in-out infinite;
+}
