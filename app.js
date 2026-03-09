@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`btn-${activeTab}`).classList.add('text-[#5A4C40]');
   }
   tabs.forEach(tab => document.getElementById(`btn-${tab}`).addEventListener('click', () => switchTab(tab)));
-  
   document.getElementById('btn-header-settings').addEventListener('click', () => switchTab('profile'));
 
   // --- DATA STORAGE & SYNC --- //
@@ -34,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if(settings.home_image) document.getElementById('main-home-image').src = settings.home_image;
         if(settings.home_title) document.getElementById('home-title').textContent = settings.home_title;
         if(settings.home_subtitle) document.getElementById('home-subtitle').textContent = settings.home_subtitle;
-        
         if(settings.home_title) document.getElementById('set-title').value = settings.home_title;
         if(settings.home_subtitle) document.getElementById('set-subtitle').value = settings.home_subtitle;
       }
@@ -69,23 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return expanded;
   }
 
-  // --- PUSH BACK & ACKNOWLEDGE ENGINE --- //
   window.pushBackTask = async function(id, daysToAdd) {
     if (!daysToAdd) return; 
-    
     const task = myTasks.find(t => t.id === id);
     if(!task) return;
-
     let d = new Date(task.task_date);
     d.setDate(d.getDate() + parseInt(daysToAdd));
     const newDateStr = d.toISOString().split('T')[0];
 
     try {
-      await fetch('/api/tasks', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'push_back', id: id, new_date: newDateStr })
-      });
+      await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'push_back', id: id, new_date: newDateStr }) });
       document.getElementById('day-view-modal').classList.add('hidden'); 
       loadDataFromCloud(); 
     } catch(e) { alert("Failed to push task back."); }
@@ -93,11 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.acknowledgeTask = async function(id) {
     try {
-      await fetch('/api/tasks', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'acknowledge', id: id })
-      });
+      await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'acknowledge', id: id }) });
       document.getElementById('day-view-modal').classList.add('hidden');
       loadDataFromCloud();
     } catch(e) { alert("Failed to acknowledge task."); }
@@ -106,13 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- RENDERING LOGIC --- //
 
-  // 1. Homepage 3 Upcoming Tasks
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
     container.innerHTML = '';
     const todayStr = new Date().toISOString().split('T')[0];
-    
-    // NEW: We filter out anything that has `acknowledged == true` (or 1 in the DB)
     let allUpcoming = getExpandedTasks().filter(t => t.task_date >= todayStr && !t.acknowledged);
     allUpcoming.sort((a, b) => new Date(a.task_date) - new Date(b.task_date));
     const nextThree = allUpcoming.slice(0, 3);
@@ -123,22 +107,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     nextThree.forEach(task => {
-      // NEW: Added the Acknowledge (Checkmark) button next to Push Back
       const actionUI = task.is_virtual ? '' : `
         <div class="border-t border-[#EAE4D9] mt-3 pt-3 flex justify-between items-center">
           <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#F4F1EA] rounded-lg px-2 py-1.5 outline-none cursor-pointer">
-            <option value="">Push back...</option>
-            <option value="1">1 Day</option>
-            <option value="3">3 Days</option>
-            <option value="5">5 Days</option>
-            <option value="7">1 Week</option>
+            <option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option>
           </select>
           <button onclick="acknowledgeTask(${task.id})" class="w-8 h-8 flex items-center justify-center bg-[#E8EDDF] text-[#5A4C40] rounded-full hover:bg-[#D5E0C9] transition shadow-sm" title="Acknowledge & Mute">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </button>
-        </div>
-      `;
-
+        </div>`;
       container.innerHTML += `
         <div class="bg-white rounded-[20px] p-4 flex flex-col border-l-4 border-[#5A4C40] shadow-sm transition hover:shadow-md">
           <div class="flex-1 cursor-pointer" onclick="editTask(${task.id})">
@@ -150,7 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2. Systems Carousel 
   let currentlyViewedSystem = null; 
   function renderSystems(containerId) {
     const container = document.getElementById(containerId);
@@ -189,10 +165,16 @@ document.addEventListener("DOMContentLoaded", () => {
     mySystems.forEach(sys => dropdown.innerHTML += `<option value="${sys.name}">${sys.name}</option>`);
   }
 
-  // 3. To-Do List Rendering 
+  // --- UNDO TO-DO LOGIC --- //
+  let lastCompletedTodo = null; // Memory for the undo button!
+
   window.completeTodo = async function(id, type) {
+    // Save the memory and show the button
+    lastCompletedTodo = { id, type };
+    document.getElementById('undo-container').classList.remove('hidden');
+
     if (type === 'manual') {
-      await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+      await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 1}) });
     } else {
       const t = myTasks.find(task => task.id == id);
       t.show_in_todo = false;
@@ -200,6 +182,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadDataFromCloud();
   }
+
+  // The actual Undo Button click handler
+  document.getElementById('btn-undo-todo').addEventListener('click', async () => {
+    if (!lastCompletedTodo) return;
+    const { id, type } = lastCompletedTodo;
+    
+    // We reverse what we just did!
+    if (type === 'manual') {
+      await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 0}) });
+    } else {
+      const t = myTasks.find(task => task.id == id);
+      if (t) {
+         t.show_in_todo = true;
+         await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+      }
+    }
+    
+    // Clear memory and hide button
+    lastCompletedTodo = null;
+    document.getElementById('undo-container').classList.add('hidden');
+    loadDataFromCloud();
+  });
 
   function renderTodoList() {
     const list = document.getElementById('todo-list');
@@ -237,14 +241,11 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.textContent = "Syncing...";
-    
     const formData = new FormData();
     formData.append('title', document.getElementById('set-title').value);
     formData.append('subtitle', document.getElementById('set-subtitle').value);
-    
     const fileInput = document.getElementById('home-img-upload');
     if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
-
     await fetch('/api/settings', { method: 'POST', body: formData });
     btn.textContent = "Sync to Cloud";
     loadDataFromCloud();
@@ -284,6 +285,17 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDataFromCloud();
   });
 
+  document.getElementById('btn-add-system').addEventListener('click', () => {
+    document.getElementById('system-form').reset();
+    document.getElementById('sys-id').value = "";
+    document.getElementById('sys-existing-image').value = "";
+    document.getElementById('sys-modal-title').textContent = "Add Home System";
+    
+    // Hide delete button when adding new!
+    document.getElementById('btn-delete-sys').classList.add('hidden');
+    document.getElementById('system-form-modal').classList.remove('hidden');
+  });
+
   document.getElementById('btn-edit-sys-detail').addEventListener('click', () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('sys-modal-title').textContent = "Edit System";
@@ -292,8 +304,21 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('sys-name').value = currentlyViewedSystem.name;
     document.getElementById('sys-desc').value = currentlyViewedSystem.description;
     document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
+    
+    // Show delete button when editing!
+    document.getElementById('btn-delete-sys').classList.remove('hidden');
     document.getElementById('system-form-modal').classList.remove('hidden');
   });
+
+  // Handle System Deletion
+  document.getElementById('btn-delete-sys').addEventListener('click', async () => {
+    if(!confirm("Are you sure you want to delete this system?")) return;
+    const id = document.getElementById('sys-id').value;
+    await fetch(`/api/systems?id=${id}`, { method: 'DELETE' });
+    document.getElementById('system-form-modal').classList.add('hidden');
+    loadDataFromCloud();
+  });
+
 
   // --- CALENDAR RENDERING --- //
   const calendarGrid = document.getElementById('calendar-grid');
