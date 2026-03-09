@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  // --- TAB SWITCHING --- //
+  // --- TAB SWITCHING & GEAR ICON --- //
   const tabs = ['home', 'systems', 'tasks', 'calendar', 'profile'];
   function switchTab(activeTab) {
     tabs.forEach(tab => {
@@ -13,6 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`btn-${activeTab}`).classList.add('text-[#5A4C40]');
   }
   tabs.forEach(tab => document.getElementById(`btn-${tab}`).addEventListener('click', () => switchTab(tab)));
+  
+  // Make the Header Gear Icon open Settings!
+  document.getElementById('btn-header-settings').addEventListener('click', () => switchTab('profile'));
 
   // --- DATA STORAGE & SYNC --- //
   let myTasks = []; 
@@ -29,12 +32,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (todosRes.ok) myTodos = await todosRes.json();
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
-        if(settings.url) document.getElementById('main-home-image').src = settings.url;
+        // Load custom image and text from the cloud!
+        if(settings.home_image) document.getElementById('main-home-image').src = settings.home_image;
+        if(settings.home_title) document.getElementById('home-title').textContent = settings.home_title;
+        if(settings.home_subtitle) document.getElementById('home-subtitle').textContent = settings.home_subtitle;
+        
+        // Pre-fill the settings form so you know what's saved
+        if(settings.home_title) document.getElementById('set-title').value = settings.home_title;
+        if(settings.home_subtitle) document.getElementById('set-subtitle').value = settings.home_subtitle;
       }
       
       renderCalendar(currentMonth, currentYear); 
-      renderSystems('home-systems-carousel'); // Homepage carousel
-      renderSystems('tab-systems-carousel');  // Tab carousel
+      renderSystems('home-systems-carousel'); 
+      renderSystems('tab-systems-carousel');  
       populateSystemDropdown();
       renderHomeTasks();
       renderTodoList();
@@ -62,9 +72,34 @@ document.addEventListener("DOMContentLoaded", () => {
     return expanded;
   }
 
+  // --- PUSH BACK ENGINE --- //
+  window.pushBackTask = async function(id, daysToAdd) {
+    if (!daysToAdd) return; // They didn't select a number
+    
+    // Find the real task in our list
+    const task = myTasks.find(t => t.id === id);
+    if(!task) return;
+
+    // Do the math to push the date back
+    let d = new Date(task.task_date);
+    d.setDate(d.getDate() + parseInt(daysToAdd));
+    const newDateStr = d.toISOString().split('T')[0];
+
+    try {
+      await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, new_date: newDateStr })
+      });
+      document.getElementById('day-view-modal').classList.add('hidden'); // Close modal if open
+      loadDataFromCloud(); // Refresh Everything!
+    } catch(e) { alert("Failed to push task back."); }
+  }
+
+
   // --- RENDERING LOGIC --- //
 
-  // 1. Homepage 3 Upcoming Tasks
+  // 1. Homepage 3 Upcoming Tasks (Now Clickable & has Push Back)
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
     container.innerHTML = '';
@@ -80,24 +115,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     nextThree.forEach(task => {
+      // The push back UI (Only show on real tasks to keep math simple)
+      const pushBackUI = task.is_virtual ? '' : `
+        <div class="border-t border-[#EAE4D9] mt-3 pt-2 flex justify-end">
+          <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#F4F1EA] rounded-lg px-2 py-1 outline-none cursor-pointer">
+            <option value="">Push back...</option>
+            <option value="1">1 Day</option>
+            <option value="3">3 Days</option>
+            <option value="5">5 Days</option>
+            <option value="7">1 Week</option>
+          </select>
+        </div>
+      `;
+
       container.innerHTML += `
-        <div class="bg-white rounded-[20px] p-4 flex gap-4 items-center border-l-4 border-[#5A4C40] shadow-sm">
-          <div class="flex-1">
+        <div class="bg-white rounded-[20px] p-4 flex flex-col border-l-4 border-[#5A4C40] shadow-sm transition hover:shadow-md">
+          <div class="flex-1 cursor-pointer" onclick="editTask(${task.id})">
             <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
             <p class="text-xs text-[#9A8C7E] mt-0.5">${task.task_date} • ${task.system_name}</p>
           </div>
+          ${pushBackUI}
         </div>`;
     });
   }
 
-  // 2. Systems Carousel (Reusable for Home and Systems Tab)
-  let currentlyViewedSystem = null; // Track this for editing
-
+  // 2. Systems Carousel 
+  let currentlyViewedSystem = null; 
   function renderSystems(containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
-    if (mySystems.length === 0) return;
-
     mySystems.forEach(sys => {
       const card = document.createElement('div');
       card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-sm border border-[#EAE4D9] cursor-pointer";
@@ -113,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
       card.addEventListener('click', () => {
-        currentlyViewedSystem = sys; // Save state for edit button
+        currentlyViewedSystem = sys; 
         document.getElementById('detail-img').src = sys.image_url;
         document.getElementById('detail-name').textContent = sys.name;
         document.getElementById('detail-desc').textContent = sys.description;
@@ -132,12 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
     mySystems.forEach(sys => dropdown.innerHTML += `<option value="${sys.name}">${sys.name}</option>`);
   }
 
-  // 3. To-Do List Rendering (Combines Manual + Calendar To-Dos)
+  // 3. To-Do List Rendering 
   window.completeTodo = async function(id, type) {
     if (type === 'manual') {
       await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
     } else {
-      // It's a calendar task. Set show_in_todo to false!
       const t = myTasks.find(task => task.id == id);
       t.show_in_todo = false;
       await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
@@ -149,36 +194,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const list = document.getElementById('todo-list');
     list.innerHTML = '';
     let count = 0;
-
-    // A. Render Scheduled Calendar Tasks (Darker brown)
     myTasks.filter(t => t.show_in_todo).forEach(task => {
       count++;
       list.innerHTML += `
         <div class="flex items-center gap-4 bg-[#BBAEA0] text-white p-4 rounded-2xl shadow-sm mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${task.id}, 'calendar')">
           <div class="w-6 h-6 rounded-full border-2 border-white flex-shrink-0 flex items-center justify-center"></div>
-          <div>
-            <span class="font-bold text-sm block">${task.task_title}</span>
-            <span class="text-xs opacity-80 uppercase tracking-widest">${task.task_date}</span>
-          </div>
+          <div><span class="font-bold text-sm block">${task.task_title}</span><span class="text-xs opacity-80 uppercase tracking-widest">${task.task_date}</span></div>
         </div>`;
     });
-
-    // B. Render Manual To-Dos (Lighter brown)
     myTodos.forEach(todo => {
       count++;
       list.innerHTML += `
         <div class="flex items-center gap-4 bg-[#EAE4D9] text-[#5A4C40] p-4 rounded-[20px] shadow-sm mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${todo.id}, 'manual')">
-          <div class="w-6 h-6 rounded-full border-2 border-[#9A8C7E] flex-shrink-0 flex items-center justify-center"></div>
-          <span class="font-bold text-sm block">${todo.text}</span>
+          <div class="w-6 h-6 rounded-full border-2 border-[#9A8C7E] flex-shrink-0"></div><span class="font-bold text-sm block">${todo.text}</span>
         </div>`;
     });
-
     if(count === 0) list.innerHTML = `<p class="text-center text-sm text-[#9A8C7E] py-8">No open to-dos. Great job!</p>`;
   }
 
   // --- FORM HANDLERS --- //
 
-  // Add Manual To-Do
   document.getElementById('todo-form').addEventListener('submit', async(e) => {
     e.preventDefault();
     const input = document.getElementById('todo-input');
@@ -187,19 +222,23 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDataFromCloud();
   });
 
-  // Upload Profile Image
   document.getElementById('settings-form').addEventListener('submit', async(e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.textContent = "Syncing...";
+    
     const formData = new FormData();
-    formData.append('image', document.getElementById('home-img-upload').files[0]);
+    formData.append('title', document.getElementById('set-title').value);
+    formData.append('subtitle', document.getElementById('set-subtitle').value);
+    
+    const fileInput = document.getElementById('home-img-upload');
+    if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
+
     await fetch('/api/settings', { method: 'POST', body: formData });
     btn.textContent = "Sync to Cloud";
     loadDataFromCloud();
   });
 
-  // Task Save
   document.getElementById('task-form').addEventListener('submit', async (e) => {
     e.preventDefault(); 
     const id = document.getElementById('task-id').value;
@@ -214,27 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
     await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
     document.getElementById('task-modal').classList.add('hidden');
     loadDataFromCloud(); 
-  });
-
-  // Edit System Detail
-  document.getElementById('btn-edit-sys-detail').addEventListener('click', () => {
-    document.getElementById('system-detail-modal').classList.add('hidden');
-    document.getElementById('sys-modal-title').textContent = "Edit System";
-    document.getElementById('sys-id').value = currentlyViewedSystem.id;
-    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
-    document.getElementById('sys-name').value = currentlyViewedSystem.name;
-    document.getElementById('sys-desc').value = currentlyViewedSystem.description;
-    document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
-    document.getElementById('system-form-modal').classList.remove('hidden');
-  });
-
-  // System Save
-  document.getElementById('btn-add-system').addEventListener('click', () => {
-    document.getElementById('system-form').reset();
-    document.getElementById('sys-id').value = "";
-    document.getElementById('sys-existing-image').value = "";
-    document.getElementById('sys-modal-title').textContent = "Add Home System";
-    document.getElementById('system-form-modal').classList.remove('hidden');
   });
 
   document.getElementById('system-form').addEventListener('submit', async (e) => {
@@ -253,6 +271,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form-modal').classList.add('hidden');
     btn.textContent = "Save";
     loadDataFromCloud();
+  });
+
+  document.getElementById('btn-edit-sys-detail').addEventListener('click', () => {
+    document.getElementById('system-detail-modal').classList.add('hidden');
+    document.getElementById('sys-modal-title').textContent = "Edit System";
+    document.getElementById('sys-id').value = currentlyViewedSystem.id;
+    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
+    document.getElementById('sys-name').value = currentlyViewedSystem.name;
+    document.getElementById('sys-desc').value = currentlyViewedSystem.description;
+    document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
+    document.getElementById('system-form-modal').classList.remove('hidden');
   });
 
 
@@ -280,10 +309,19 @@ document.addEventListener("DOMContentLoaded", () => {
       cell.addEventListener('click', () => {
         document.getElementById('day-view-title').textContent = `${dateStr}`;
         const container = document.getElementById('day-view-tasks');
+        
         container.innerHTML = dayTasks.length ? dayTasks.map(t => `
-          <div class="bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40] flex justify-between">
-            <div><h4 class="font-bold text-[#3E342B] text-sm">${t.task_title}</h4><p class="text-xs text-[#9A8C7E] mt-1">${t.system_name}</p></div>
-            ${t.is_virtual ? '' : `<div class="flex gap-3"><button onclick="editTask(${t.id})" class="text-[#9A8C7E]">✏️</button><button onclick="deleteTask(${t.id})" class="text-[#9A8C7E]">🗑️</button></div>`}
+          <div class="bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40] flex flex-col gap-2">
+            <div class="flex justify-between items-center">
+              <div><h4 class="font-bold text-[#3E342B] text-sm">${t.task_title}</h4><p class="text-xs text-[#9A8C7E] mt-1">${t.system_name}</p></div>
+              ${t.is_virtual ? '' : `<div class="flex gap-3"><button onclick="editTask(${t.id})" class="text-[#9A8C7E] text-lg">✏️</button><button onclick="deleteTask(${t.id})" class="text-[#9A8C7E] text-lg">🗑️</button></div>`}
+            </div>
+            ${t.is_virtual ? '' : `
+            <div class="border-t border-[#EAE4D9] pt-2 flex justify-end">
+              <select onchange="pushBackTask(${t.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#EAE4D9] rounded-lg px-2 py-1 outline-none cursor-pointer">
+                <option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option>
+              </select>
+            </div>`}
           </div>`).join('') : `<p class="text-center text-[#9A8C7E] py-4">Nothing scheduled.</p>`;
         document.getElementById('task-date').value = dateStr;
         document.getElementById('day-view-modal').classList.remove('hidden');
@@ -298,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.deleteTask = async function(id) {
     if(confirm("Delete task?")) { await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' }); document.getElementById('day-view-modal').classList.add('hidden'); loadDataFromCloud(); }
   }
+  
   window.editTask = function(id) {
     const t = myTasks.find(x => x.id === id);
     if(!t) return;
@@ -308,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-recurrence').value = t.recurrence || 'none';
     document.getElementById('task-show-todo').checked = t.show_in_todo ? true : false;
     document.getElementById('task-modal-title').textContent = "Edit Task";
-    document.getElementById('day-view-modal').classList.add('hidden');
+    document.getElementById('day-view-modal').classList.add('hidden'); // Close day view if open
     document.getElementById('task-modal').classList.remove('hidden');
   }
 });
