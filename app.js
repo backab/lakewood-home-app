@@ -32,29 +32,28 @@ document.addEventListener("DOMContentLoaded", () => {
   btnCalendar.addEventListener('click', () => switchTab(btnCalendar, viewCalendar));
   btnProfile.addEventListener('click', () => switchTab(btnProfile, viewProfile));
 
- // --- CLOUD DATA STORAGE (UPDATED!) --- //
+  // --- CLOUD DATA STORAGE --- //
   let myTasks = []; 
 
-  // Function to pull tasks from your database when the app loads
   async function loadTasksFromCloud() {
     try {
       const response = await fetch('/api/tasks');
       if (response.ok) {
-        myTasks = await response.json(); // Overwrite empty list with real database data!
-        renderCalendar(currentMonth, currentYear); // Redraw the calendar with the new data
+        myTasks = await response.json(); 
+        renderCalendar(currentMonth, currentYear); 
       }
     } catch (error) {
       console.error("Could not load tasks from cloud:", error);
     }
   }
 
-  // Call it immediately when the app starts
   loadTasksFromCloud();
 
 
   // --- MODAL LOGIC --- //
   const taskModal = document.getElementById('task-modal');
   const dayViewModal = document.getElementById('day-view-modal'); 
+  const taskModalTitle = document.getElementById('task-modal-title'); // NEW
   
   const btnAddTask = document.getElementById('btn-add-task');
   const btnCancelTask = document.getElementById('btn-cancel-task');
@@ -62,7 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnOpenAddTask = document.getElementById('btn-open-add-task');
   
   const taskForm = document.getElementById('task-form');
+  const taskIdInput = document.getElementById('task-id'); // NEW
   const taskDateInput = document.getElementById('task-date');
+  const taskSystemInput = document.getElementById('task-system');
+  const taskTitleInput = document.getElementById('task-title');
 
   function formatDateForInput(year, month, day) {
     const m = String(month + 1).padStart(2, '0');
@@ -70,10 +72,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${year}-${m}-${d}`;
   }
 
-  // Floating + button logic
+  // Floating + button logic (For Creating)
   btnAddTask.addEventListener('click', () => {
     const today = new Date();
+    taskForm.reset(); // Clear old data
+    taskIdInput.value = ""; // Clear ID so we know it's a new task
+    taskModalTitle.textContent = "Add New Task";
     taskDateInput.value = formatDateForInput(today.getFullYear(), today.getMonth(), today.getDate());
+    taskModal.classList.remove('hidden');
+  });
+
+  // Clicking "+ Add Task" from inside the Day View modal
+  btnOpenAddTask.addEventListener('click', () => {
+    const currentDateVal = taskDateInput.value; // Remember the date we were looking at
+    dayViewModal.classList.add('hidden');
+    taskForm.reset();
+    taskIdInput.value = "";
+    taskModalTitle.textContent = "Add New Task";
+    taskDateInput.value = currentDateVal;
     taskModal.classList.remove('hidden');
   });
 
@@ -87,102 +103,76 @@ document.addEventListener("DOMContentLoaded", () => {
     dayViewModal.classList.add('hidden');
   });
 
-  // Clicking "+ Add Task" from inside the Day View modal
-  btnOpenAddTask.addEventListener('click', () => {
+  // Global functions to handle Edit/Delete from dynamically generated HTML
+  window.deleteTask = async function(id) {
+    if(!confirm("Are you sure you want to delete this task?")) return;
+    
+    try {
+      const response = await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        dayViewModal.classList.add('hidden');
+        loadTasksFromCloud(); // Refresh the data!
+      }
+    } catch (err) {
+      alert("Failed to delete task.");
+    }
+  }
+
+  window.editTask = function(id) {
+    // Find the task in our local memory
+    const taskToEdit = myTasks.find(t => t.id === id);
+    if(!taskToEdit) return;
+
+    // Fill the form with the task's existing data
+    taskIdInput.value = taskToEdit.id;
+    taskDateInput.value = taskToEdit.task_date;
+    taskSystemInput.value = taskToEdit.system_name;
+    taskTitleInput.value = taskToEdit.task_title;
+    
+    // Switch the UI to "Edit Mode"
+    taskModalTitle.textContent = "Edit Task";
     dayViewModal.classList.add('hidden');
     taskModal.classList.remove('hidden');
-  });
+  }
 
-  // Handle saving a task (UPDATED FOR CLOUD!)
+  // Handle saving a task (Smart enough to know Create vs Update)
   taskForm.addEventListener('submit', async (e) => {
     e.preventDefault(); 
     
-    // Change the save button text so you know it's working
-    const submitBtn = taskForm.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('btn-save-task');
     const originalText = submitBtn.textContent;
     submitBtn.textContent = "Saving...";
 
-    const newTask = {
-      task_date: document.getElementById('task-date').value,
-      system_name: document.getElementById('task-system').value,
-      task_title: document.getElementById('task-title').value
+    const isUpdating = taskIdInput.value !== ""; // Do we have an ID?
+    
+    const taskData = {
+      task_date: taskDateInput.value,
+      system_name: taskSystemInput.value,
+      task_title: taskTitleInput.value
     };
 
+    if (isUpdating) {
+      taskData.id = taskIdInput.value; // Attach the ID for the database
+    }
+
     try {
-      // 1. Send it to the database FIRST
       const response = await fetch('/api/tasks', {
-        method: 'POST',
+        method: isUpdating ? 'PUT' : 'POST', // Use PUT if updating, POST if creating
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask)
+        body: JSON.stringify(taskData)
       });
 
       if (response.ok) {
-        // 2. If the database says "Success!", update the calendar
-        myTasks.push(newTask);
-        renderCalendar(currentMonth, currentYear); 
-        
         taskModal.classList.add('hidden');
         taskForm.reset();
+        loadTasksFromCloud(); // Force a fresh sync from the cloud!
       } else {
-        alert("Error saving to database. Check Cloudflare bindings.");
+        alert("Error saving to database.");
       }
     } catch (error) {
       alert("Network error. Could not reach the cloud.");
     } finally {
       submitBtn.textContent = originalText;
-    }
-  });
-
-  // Floating + button logic
-  btnAddTask.addEventListener('click', () => {
-    const today = new Date();
-    taskDateInput.value = formatDateForInput(today.getFullYear(), today.getMonth(), today.getDate());
-    taskModal.classList.remove('hidden');
-  });
-
-  // Close buttons
-  btnCancelTask.addEventListener('click', () => {
-    taskModal.classList.add('hidden');
-    taskForm.reset(); 
-  });
-
-  btnCloseDayView.addEventListener('click', () => {
-    dayViewModal.classList.add('hidden');
-  });
-
-  // Clicking "+ Add Task" from inside the Day View modal
-  btnOpenAddTask.addEventListener('click', () => {
-    dayViewModal.classList.add('hidden');
-    taskModal.classList.remove('hidden');
-  });
-
-  // Handle saving a task
-  taskForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); 
-
-    const newTask = {
-      task_date: document.getElementById('task-date').value,
-      system_name: document.getElementById('task-system').value,
-      task_title: document.getElementById('task-title').value
-    };
-
-    // 1. SAVE LOCALLY & REDRAW CALENDAR
-    myTasks.push(newTask);
-    renderCalendar(currentMonth, currentYear); 
-    
-    // Close modal and reset form
-    taskModal.classList.add('hidden');
-    taskForm.reset();
-
-    // 2. SEND TO DATABASE 
-    try {
-      await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask)
-      });
-    } catch (error) {
-      console.log("Task saved locally. Database connection pending.");
     }
   });
 
@@ -222,15 +212,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
         dayCell.classList.add('bg-[#5A4C40]', 'text-white', 'shadow-md'); 
       } else if (dayTasks.length > 0) {
-        // HIGHLIGHT DATE
         dayCell.classList.add('bg-[#E8EDDF]', 'text-[#5A4C40]', 'font-bold', 'border', 'border-[#9A8C7E]');
       } else {
         dayCell.classList.add('hover:bg-[#EAE4D9]'); 
       }
 
-      // Click logic for days (Always opens Day View first)
+      // Click logic for days 
       dayCell.addEventListener('click', () => {
-        
         document.getElementById('day-view-title').textContent = `Tasks for ${monthNames[month]} ${day}`;
         const tasksContainer = document.getElementById('day-view-tasks');
         tasksContainer.innerHTML = ''; 
@@ -238,10 +226,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dayTasks.length > 0) {
           dayTasks.forEach(task => {
             const taskCard = document.createElement('div');
-            taskCard.className = "bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40]";
+            taskCard.className = "bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40] flex justify-between items-center";
+            // Note: We added an Edit (✏️) and Delete (🗑️) button here!
             taskCard.innerHTML = `
-              <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
-              <p class="text-xs text-[#9A8C7E] mt-1 uppercase tracking-wider">${task.system_name}</p>
+              <div>
+                <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
+                <p class="text-xs text-[#9A8C7E] mt-1 uppercase tracking-wider">${task.system_name}</p>
+              </div>
+              <div class="flex gap-3 text-lg">
+                <button onclick="editTask(${task.id})" class="text-[#9A8C7E] hover:text-[#5A4C40] transition">✏️</button>
+                <button onclick="deleteTask(${task.id})" class="text-[#9A8C7E] hover:text-red-500 transition">🗑️</button>
+              </div>
             `;
             tasksContainer.appendChild(taskCard);
           });
@@ -275,6 +270,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentYear > currentDate.getFullYear() + 3) { currentMonth = 11; currentYear--; return; }
     renderCalendar(currentMonth, currentYear);
   });
-
-  renderCalendar(currentMonth, currentYear);
 });
