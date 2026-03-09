@@ -11,25 +11,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const viewTasks = document.getElementById('view-tasks');
   const viewProfile = document.getElementById('view-profile');
 
-  // 3. Create a helper function to switch tabs
+ // 3. Create a helper function to switch tabs
   function switchTab(activeBtn, activeView) {
-    // Hide ALL views by adding the Tailwind 'hidden' class
+    // Hide ALL views
     viewHome.classList.add('hidden');
     viewTasks.classList.add('hidden');
     viewProfile.classList.add('hidden');
 
-    // Reset ALL buttons to gray (unselected state)
+    // Reset ALL buttons to light tan (unselected state)
     [btnHome, btnTasks, btnProfile].forEach(btn => {
-      btn.classList.remove('text-white');
-      btn.classList.add('text-gray-400');
+      btn.classList.remove('text-[#5A4C40]');
+      btn.classList.add('text-[#BBAEA0]');
     });
 
-    // Show the view we clicked on by removing 'hidden'
+    // Show the view we clicked on
     activeView.classList.remove('hidden');
 
-    // Make the button we clicked on bright white
-    activeBtn.classList.remove('text-gray-400');
-    activeBtn.classList.add('text-white');
+    // Make the button we clicked on deep brown (selected state)
+    activeBtn.classList.remove('text-[#BBAEA0]');
+    activeBtn.classList.add('text-[#5A4C40]');
   }
 
   // 4. Attach click listeners to the buttons
