@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>7015 Home Dashboard</title>
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -35,42 +34,29 @@
         <div class="bg-white/20 backdrop-blur-md rounded-full px-3 py-1 border border-white/30 text-white text-xs font-semibold">Good</div>
       </div>
     </div>
+  </div>
 
-    <div>
-      <div class="flex justify-between items-center mb-4 px-1">
-        <h3 class="text-lg font-bold text-[#3E342B]">Home Systems</h3>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <button class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[24px] p-5 flex flex-col items-start gap-4 transition hover:-translate-y-1">
-          <div class="w-12 h-12 rounded-full bg-[#E5F0ED] flex items-center justify-center text-xl">💧</div>
-          <div class="text-left">
-            <span class="block font-bold text-[#3E342B]">Well Water</span>
-            <span class="block text-xs text-[#9A8C7E] mt-1">Check filter</span>
-          </div>
-        </button>
-        <button class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[24px] p-5 flex flex-col items-start gap-4 transition hover:-translate-y-1">
-          <div class="w-12 h-12 rounded-full bg-[#F4EBE6] flex items-center justify-center text-xl">♨️</div>
-          <div class="text-left">
-            <span class="block font-bold text-[#3E342B]">Hot Tub</span>
-            <span class="block text-xs text-[#9A8C7E] mt-1">102°F target</span>
-          </div>
-        </button>
-        <button class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[24px] p-5 flex flex-col items-start gap-4 transition hover:-translate-y-1">
-          <div class="w-12 h-12 rounded-full bg-[#E8EDDF] flex items-center justify-center text-xl">🌱</div>
-          <div class="text-left">
-            <span class="block font-bold text-[#3E342B]">Septic Drip</span>
-            <span class="block text-xs text-[#9A8C7E] mt-1">Auto-cycle</span>
-          </div>
-        </button>
-        <button class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[24px] p-5 flex flex-col items-start gap-4 transition hover:-translate-y-1">
-          <div class="w-12 h-12 rounded-full bg-[#F3EBE1] flex items-center justify-center text-xl">📅</div>
-          <div class="text-left">
-            <span class="block font-bold text-[#3E342B]">Calendar</span>
-            <span class="block text-xs text-[#9A8C7E] mt-1">2 upcoming</span>
-          </div>
-        </button>
+  <div id="view-systems" class="hidden space-y-6 relative pb-16">
+    <div class="flex justify-between items-center px-1">
+      <h2 class="text-2xl font-bold text-[#3E342B]">My Systems</h2>
+      <span class="text-xs font-bold text-[#9A8C7E] uppercase cursor-pointer">View All</span>
+    </div>
+    
+    <div id="systems-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 no-scrollbar">
+      <div class="snap-center shrink-0 w-[75%] bg-white rounded-[32px] p-2 shadow-lg border border-[#EAE4D9] cursor-pointer">
+        <div class="h-64 rounded-[24px] overflow-hidden relative mb-4">
+          <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" />
+        </div>
+        <div class="px-4 pb-4">
+          <h3 class="text-lg font-bold text-[#3E342B]">Well Water System</h3>
+          <p class="text-xs text-[#9A8C7E] mt-1 font-medium">1 Upcoming Task</p>
+        </div>
       </div>
     </div>
+
+    <button id="btn-add-system" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    </button>
   </div>
 
   <div id="view-tasks" class="hidden">
@@ -83,36 +69,15 @@
   <div id="view-calendar" class="hidden space-y-6 relative pb-16">
     <div class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[32px] p-5">
       <div class="flex justify-between items-center mb-4 px-2">
-        <button id="prev-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
+        <button id="prev-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
         <h2 id="calendar-month-year" class="text-lg font-bold text-[#3E342B]"></h2>
-        <button id="next-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </button>
+        <button id="next-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
       </div>
-
       <div class="grid grid-cols-7 text-center text-xs font-bold text-[#9A8C7E] mb-2">
         <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
       </div>
-
-      <div id="calendar-grid" class="grid grid-cols-7 text-center gap-y-2 text-[#3E342B] font-medium text-sm">
-        </div>
+      <div id="calendar-grid" class="grid grid-cols-7 text-center gap-y-2 text-[#3E342B] font-medium text-sm"></div>
     </div>
-
-    <div>
-      <h3 class="text-lg font-bold text-[#3E342B] mb-4 px-1">Upcoming plans</h3>
-      <div class="space-y-3">
-        <div class="bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-[20px] p-4 flex gap-4 items-center border-l-4 border-[#5A4C40]">
-          <div class="w-12 h-12 rounded-[14px] bg-[#E8EDDF] flex items-center justify-center text-xl shrink-0">💧</div>
-          <div class="flex-1">
-            <h4 class="font-bold text-[#3E342B] text-sm">Check Sediment Filter</h4>
-            <p class="text-xs text-[#9A8C7E] mt-0.5">Tomorrow • 10:00 AM</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <button id="btn-add-task" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
     </button>
@@ -124,13 +89,15 @@
       <p class="text-[#9A8C7E] text-sm">App settings will go here!</p>
     </div>
   </div>
-
 </main>
 
 <nav class="fixed bottom-0 w-full bg-[#F4F1EA] border-t border-[#EAE4D9] pt-4 pb-8 z-50">
   <div class="flex justify-around items-center">
     <button id="btn-home" class="flex flex-col items-center gap-1 text-[#5A4C40] transition">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+    </button>
+    <button id="btn-systems" class="flex flex-col items-center gap-1 text-[#BBAEA0] hover:text-[#5A4C40] transition">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
     </button>
     <button id="btn-tasks" class="flex flex-col items-center gap-1 text-[#BBAEA0] hover:text-[#5A4C40] transition">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
@@ -145,37 +112,43 @@
 </nav>
 
 <div id="task-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
-  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
-    
+  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
     <h2 id="task-modal-title" class="text-xl font-bold text-[#3E342B] mb-5">Add New Task</h2>
-    
     <form id="task-form" class="space-y-4">
-      
       <input type="hidden" id="task-id" value="">
-      
       <div>
         <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Date</label>
         <input type="date" id="task-date" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
       </div>
-      
       <div>
         <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Home System</label>
         <div class="relative">
           <select id="task-system" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium appearance-none pr-10" required>
-            <option value="General">General Home</option>
             <option value="Well Water">Well Water</option>
-            <option value="Hot Tub">Hot Tub</option>
-            <option value="Septic Drip">Septic Drip</option>
           </select>
           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#9A8C7E]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
           </div>
         </div>
       </div>
-      
       <div>
         <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Task Name</label>
-        <input type="text" id="task-title" placeholder="e.g., Change sediment filter" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
+        <input type="text" id="task-title" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Repeat</label>
+        <div class="relative">
+          <select id="task-recurrence" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium appearance-none pr-10">
+            <option value="none">Just this day</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="semi-annual">Semi-Annually</option>
+            <option value="annual">Annually</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#9A8C7E]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
       </div>
       
       <div class="flex gap-3 pt-2">
@@ -189,14 +162,65 @@
 <div id="day-view-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
   <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
     <h2 id="day-view-title" class="text-xl font-bold text-[#3E342B] mb-5">Tasks</h2>
-    
-    <div id="day-view-tasks" class="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar">
-      </div>
-    
+    <div id="day-view-tasks" class="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar"></div>
     <div class="flex gap-3 pt-2">
       <button type="button" id="btn-close-day-view" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9] transition">Close</button>
       <button type="button" id="btn-open-add-task" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] transition shadow-lg">+ Add Task</button>
     </div>
+  </div>
+</div>
+
+<div id="system-form-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
+  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
+    <h2 class="text-xl font-bold text-[#3E342B] mb-5">Add Home System</h2>
+    <form id="system-form" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">System Name</label>
+        <input type="text" id="sys-name" placeholder="e.g., HVAC" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none outline-none font-medium" required>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Description</label>
+        <textarea id="sys-desc" rows="2" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none outline-none font-medium" required></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Documentation Link</label>
+        <input type="url" id="sys-link" placeholder="https://" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none outline-none font-medium">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Header Image</label>
+        <input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#E8EDDF] file:text-[#5A4C40] hover:file:bg-[#D5E0C9] transition cursor-pointer">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="btn-cancel-sys" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9]">Cancel</button>
+        <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] shadow-lg">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="system-detail-modal" class="fixed inset-0 bg-[#F4F1EA] hidden z-[110] overflow-y-auto no-scrollbar pb-24">
+  <button id="btn-close-sys-detail" class="absolute top-6 right-6 w-10 h-10 bg-white/50 backdrop-blur-md rounded-full flex items-center justify-center text-[#3E342B] z-10 shadow-sm">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+  </button>
+  
+  <div class="h-[50vh] w-full relative">
+    <img id="detail-img" src="" class="w-full h-full object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-t from-[#F4F1EA] via-transparent to-transparent"></div>
+  </div>
+
+  <div class="relative -mt-16 mx-4 bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.05)]">
+    <h2 id="detail-name" class="text-3xl font-bold text-[#3E342B] mb-2">System Name</h2>
+    <p id="detail-desc" class="text-sm text-[#9A8C7E] leading-relaxed mb-6">Description goes here...</p>
+    
+    <div class="flex gap-4 mb-6">
+      <a id="detail-link" href="#" target="_blank" class="flex items-center gap-2 text-xs font-bold bg-[#E8EDDF] text-[#5A4C40] px-4 py-2 rounded-full uppercase tracking-wide">
+        <span>📄</span> Manual
+      </a>
+    </div>
+
+    <button id="btn-jump-calendar" class="w-full py-4 rounded-[20px] font-bold text-lg text-white bg-[#EE7A48] hover:bg-[#D66535] transition shadow-xl flex justify-center items-center gap-2">
+      <span>▶</span> Next Scheduled Task
+    </button>
   </div>
 </div>
 
