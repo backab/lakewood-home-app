@@ -32,13 +32,12 @@ document.addEventListener("DOMContentLoaded", () => {
   btnCalendar.addEventListener('click', () => switchTab(btnCalendar, viewCalendar));
   btnProfile.addEventListener('click', () => switchTab(btnProfile, viewProfile));
 
-  // --- LOCAL DATA STORAGE (NEW!) --- //
-  // We will store tasks here temporarily so you can see the UI working immediately
+  // --- LOCAL DATA STORAGE --- //
   let myTasks = []; 
 
   // --- MODAL LOGIC --- //
   const taskModal = document.getElementById('task-modal');
-  const dayViewModal = document.getElementById('day-view-modal'); // NEW Modal
+  const dayViewModal = document.getElementById('day-view-modal'); 
   
   const btnAddTask = document.getElementById('btn-add-task');
   const btnCancelTask = document.getElementById('btn-cancel-task');
@@ -87,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
       task_title: document.getElementById('task-title').value
     };
 
-    // 1. SAVE LOCALLY & REDRAW CALENDAR (This creates the highlight instantly!)
+    // 1. SAVE LOCALLY & REDRAW CALENDAR
     myTasks.push(newTask);
     renderCalendar(currentMonth, currentYear); 
     
@@ -95,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
     taskModal.classList.add('hidden');
     taskForm.reset();
 
-    // 2. SEND TO DATABASE (Will fail gracefully until we set up the backend)
+    // 2. SEND TO DATABASE 
     try {
       await fetch('/api/tasks', {
         method: 'POST',
@@ -108,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  // --- CALENDAR LOGIC (Updated for Highlights & Popups) --- //
+  // --- CALENDAR LOGIC --- //
   const monthYearDisplay = document.getElementById('calendar-month-year');
   const calendarGrid = document.getElementById('calendar-grid');
   const prevMonthBtn = document.getElementById('prev-month');
@@ -136,31 +135,26 @@ document.addEventListener("DOMContentLoaded", () => {
       dayCell.textContent = day;
       dayCell.classList.add('py-2', 'm-0.5', 'rounded-full', 'cursor-pointer', 'transition');
 
-      // NEW: Check if this specific date has any tasks saved
       const dateString = formatDateForInput(year, month, day);
       const dayTasks = myTasks.filter(t => t.task_date === dateString);
 
       const today = new Date();
       if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
-        dayCell.classList.add('bg-[#5A4C40]', 'text-white', 'shadow-md'); // Today's Date
+        dayCell.classList.add('bg-[#5A4C40]', 'text-white', 'shadow-md'); 
       } else if (dayTasks.length > 0) {
-        // HIGHLIGHT DATE: It has tasks! (Light earthy green with a border)
+        // HIGHLIGHT DATE
         dayCell.classList.add('bg-[#E8EDDF]', 'text-[#5A4C40]', 'font-bold', 'border', 'border-[#9A8C7E]');
       } else {
-        dayCell.classList.add('hover:bg-[#EAE4D9]'); // Normal Date
+        dayCell.classList.add('hover:bg-[#EAE4D9]'); 
       }
 
-      // NEW: Click logic for days
-      // NEW: Click logic for days (Always opens Day View first)
+      // Click logic for days (Always opens Day View first)
       dayCell.addEventListener('click', () => {
         
-        // 1. Set the title of the modal to the date clicked
         document.getElementById('day-view-title').textContent = `Tasks for ${monthNames[month]} ${day}`;
-        
         const tasksContainer = document.getElementById('day-view-tasks');
-        tasksContainer.innerHTML = ''; // Clear previous data
+        tasksContainer.innerHTML = ''; 
         
-        // 2. Check if we have tasks. If yes, draw them. If no, show an empty state.
         if (dayTasks.length > 0) {
           dayTasks.forEach(task => {
             const taskCard = document.createElement('div');
@@ -172,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tasksContainer.appendChild(taskCard);
           });
         } else {
-          // Empty state UI for days with no tasks
           const emptyState = document.createElement('div');
           emptyState.className = "text-center py-6";
           emptyState.innerHTML = `
@@ -182,35 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
           tasksContainer.appendChild(emptyState);
         }
         
-        // 3. Pre-fill the hidden form date so if they click "+ Add Task", it knows what day it is!
         taskDateInput.value = dateString;
-        
-        // 4. Open the Day View modal
         dayViewModal.classList.remove('hidden');
-      });
-          const tasksContainer = document.getElementById('day-view-tasks');
-          tasksContainer.innerHTML = ''; // Clear previous
-          
-          // Build the visual cards for each task on this day
-          dayTasks.forEach(task => {
-            const taskCard = document.createElement('div');
-            taskCard.className = "bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40]";
-            taskCard.innerHTML = `
-              <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
-              <p class="text-xs text-[#9A8C7E] mt-1 uppercase tracking-wider">${task.system_name}</p>
-            `;
-            tasksContainer.appendChild(taskCard);
-          });
-          
-          // Pre-fill the add task date just in case they click "+ Add Task" from here
-          taskDateInput.value = dateString;
-          dayViewModal.classList.remove('hidden');
-          
-        } else {
-          // If no tasks, jump straight to adding a new one
-          taskDateInput.value = dateString;
-          taskModal.classList.remove('hidden');
-        }
       });
 
       calendarGrid.appendChild(dayCell);
