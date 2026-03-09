@@ -19,3 +19,11 @@ export async function onRequestDelete(context) {
   await context.env.DB.prepare("DELETE FROM system_tasks WHERE id = ?").bind(id).run();
   return Response.json({ success: true });
 }
+// PATCH: Quick update for pushing dates back
+export async function onRequestPatch(context) {
+  try {
+    const { id, new_date } = await context.request.json();
+    await context.env.DB.prepare("UPDATE system_tasks SET task_date = ? WHERE id = ?").bind(new_date, id).run();
+    return Response.json({ success: true });
+  } catch (error) { return new Response("Error", { status: 500 }); }
+}
