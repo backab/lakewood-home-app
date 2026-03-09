@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   tabs.forEach(tab => document.getElementById(`btn-${tab}`).addEventListener('click', () => switchTab(tab)));
   
-  // Make the Header Gear Icon open Settings!
   document.getElementById('btn-header-settings').addEventListener('click', () => switchTab('profile'));
 
   // --- DATA STORAGE & SYNC --- //
@@ -32,12 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (todosRes.ok) myTodos = await todosRes.json();
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
-        // Load custom image and text from the cloud!
         if(settings.home_image) document.getElementById('main-home-image').src = settings.home_image;
         if(settings.home_title) document.getElementById('home-title').textContent = settings.home_title;
         if(settings.home_subtitle) document.getElementById('home-subtitle').textContent = settings.home_subtitle;
         
-        // Pre-fill the settings form so you know what's saved
         if(settings.home_title) document.getElementById('set-title').value = settings.home_title;
         if(settings.home_subtitle) document.getElementById('set-subtitle').value = settings.home_subtitle;
       }
@@ -72,15 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return expanded;
   }
 
-  // --- PUSH BACK ENGINE --- //
+  // --- PUSH BACK & ACKNOWLEDGE ENGINE --- //
   window.pushBackTask = async function(id, daysToAdd) {
-    if (!daysToAdd) return; // They didn't select a number
+    if (!daysToAdd) return; 
     
-    // Find the real task in our list
     const task = myTasks.find(t => t.id === id);
     if(!task) return;
 
-    // Do the math to push the date back
     let d = new Date(task.task_date);
     d.setDate(d.getDate() + parseInt(daysToAdd));
     const newDateStr = d.toISOString().split('T')[0];
@@ -89,23 +84,36 @@ document.addEventListener("DOMContentLoaded", () => {
       await fetch('/api/tasks', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id, new_date: newDateStr })
+        body: JSON.stringify({ action: 'push_back', id: id, new_date: newDateStr })
       });
-      document.getElementById('day-view-modal').classList.add('hidden'); // Close modal if open
-      loadDataFromCloud(); // Refresh Everything!
+      document.getElementById('day-view-modal').classList.add('hidden'); 
+      loadDataFromCloud(); 
     } catch(e) { alert("Failed to push task back."); }
+  }
+
+  window.acknowledgeTask = async function(id) {
+    try {
+      await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'acknowledge', id: id })
+      });
+      document.getElementById('day-view-modal').classList.add('hidden');
+      loadDataFromCloud();
+    } catch(e) { alert("Failed to acknowledge task."); }
   }
 
 
   // --- RENDERING LOGIC --- //
 
-  // 1. Homepage 3 Upcoming Tasks (Now Clickable & has Push Back)
+  // 1. Homepage 3 Upcoming Tasks
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
     container.innerHTML = '';
     const todayStr = new Date().toISOString().split('T')[0];
     
-    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= todayStr);
+    // NEW: We filter out anything that has `acknowledged == true` (or 1 in the DB)
+    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= todayStr && !t.acknowledged);
     allUpcoming.sort((a, b) => new Date(a.task_date) - new Date(b.task_date));
     const nextThree = allUpcoming.slice(0, 3);
 
@@ -115,16 +123,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     nextThree.forEach(task => {
-      // The push back UI (Only show on real tasks to keep math simple)
-      const pushBackUI = task.is_virtual ? '' : `
-        <div class="border-t border-[#EAE4D9] mt-3 pt-2 flex justify-end">
-          <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#F4F1EA] rounded-lg px-2 py-1 outline-none cursor-pointer">
+      // NEW: Added the Acknowledge (Checkmark) button next to Push Back
+      const actionUI = task.is_virtual ? '' : `
+        <div class="border-t border-[#EAE4D9] mt-3 pt-3 flex justify-between items-center">
+          <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#F4F1EA] rounded-lg px-2 py-1.5 outline-none cursor-pointer">
             <option value="">Push back...</option>
             <option value="1">1 Day</option>
             <option value="3">3 Days</option>
             <option value="5">5 Days</option>
             <option value="7">1 Week</option>
           </select>
+          <button onclick="acknowledgeTask(${task.id})" class="w-8 h-8 flex items-center justify-center bg-[#E8EDDF] text-[#5A4C40] rounded-full hover:bg-[#D5E0C9] transition shadow-sm" title="Acknowledge & Mute">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+          </button>
         </div>
       `;
 
@@ -134,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
             <p class="text-xs text-[#9A8C7E] mt-0.5">${task.task_date} • ${task.system_name}</p>
           </div>
-          ${pushBackUI}
+          ${actionUI}
         </div>`;
     });
   }
@@ -284,7 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form-modal').classList.remove('hidden');
   });
 
-
   // --- CALENDAR RENDERING --- //
   const calendarGrid = document.getElementById('calendar-grid');
   let currentMonth = new Date().getMonth(); let currentYear = new Date().getFullYear();
@@ -317,10 +327,14 @@ document.addEventListener("DOMContentLoaded", () => {
               ${t.is_virtual ? '' : `<div class="flex gap-3"><button onclick="editTask(${t.id})" class="text-[#9A8C7E] text-lg">✏️</button><button onclick="deleteTask(${t.id})" class="text-[#9A8C7E] text-lg">🗑️</button></div>`}
             </div>
             ${t.is_virtual ? '' : `
-            <div class="border-t border-[#EAE4D9] pt-2 flex justify-end">
-              <select onchange="pushBackTask(${t.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#EAE4D9] rounded-lg px-2 py-1 outline-none cursor-pointer">
+            <div class="border-t border-[#EAE4D9] pt-3 flex justify-between items-center">
+              <select onchange="pushBackTask(${t.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#EAE4D9] rounded-lg px-2 py-1.5 outline-none cursor-pointer">
                 <option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option>
               </select>
+              ${t.acknowledged ? 
+                `<span class="text-xs font-bold text-[#9A8C7E] italic flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Acknowledged</span>` : 
+                `<button onclick="acknowledgeTask(${t.id})" class="w-7 h-7 flex items-center justify-center bg-[#E8EDDF] text-[#5A4C40] rounded-full hover:bg-[#D5E0C9] transition" title="Acknowledge & Mute"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>`
+              }
             </div>`}
           </div>`).join('') : `<p class="text-center text-[#9A8C7E] py-4">Nothing scheduled.</p>`;
         document.getElementById('task-date').value = dateStr;
@@ -347,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-recurrence').value = t.recurrence || 'none';
     document.getElementById('task-show-todo').checked = t.show_in_todo ? true : false;
     document.getElementById('task-modal-title').textContent = "Edit Task";
-    document.getElementById('day-view-modal').classList.add('hidden'); // Close day view if open
+    document.getElementById('day-view-modal').classList.add('hidden'); 
     document.getElementById('task-modal').classList.remove('hidden');
   }
 });
