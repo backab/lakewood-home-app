@@ -25,5 +25,15 @@ export async function onRequestPost(context) {
   } else {
     await context.env.DB.prepare("INSERT INTO home_systems (name, description, doc_link, image_url) VALUES (?, ?, ?, ?)").bind(name, desc, link, imageUrl).run();
   }
+
+  export async function onRequestDelete(context) {
+  try {
+    const id = new URL(context.request.url).searchParams.get('id');
+    await context.env.DB.prepare("DELETE FROM home_systems WHERE id = ?").bind(id).run();
+    return Response.json({ success: true });
+  } catch (error) { 
+    return new Response("Error", { status: 500 }); 
+  }
+}
   return Response.json({ success: true });
 }
