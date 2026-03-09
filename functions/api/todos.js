@@ -9,7 +9,9 @@ export async function onRequestPost(context) {
 }
 export async function onRequestPut(context) {
   const todo = await context.request.json();
-  // Mark as completed
-  await context.env.DB.prepare("UPDATE manual_todos SET is_completed = 1 WHERE id=?").bind(todo.id).run();
+  // If we pass is_completed: 0, it un-checks it! Otherwise, it assumes 1 (completed).
+  const state = todo.is_completed !== undefined ? todo.is_completed : 1;
+  
+  await context.env.DB.prepare("UPDATE manual_todos SET is_completed = ? WHERE id=?").bind(state, todo.id).run();
   return Response.json({ success: true });
 }
