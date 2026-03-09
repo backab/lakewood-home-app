@@ -32,8 +32,25 @@ document.addEventListener("DOMContentLoaded", () => {
   btnCalendar.addEventListener('click', () => switchTab(btnCalendar, viewCalendar));
   btnProfile.addEventListener('click', () => switchTab(btnProfile, viewProfile));
 
-  // --- LOCAL DATA STORAGE --- //
+ // --- CLOUD DATA STORAGE (UPDATED!) --- //
   let myTasks = []; 
+
+  // Function to pull tasks from your database when the app loads
+  async function loadTasksFromCloud() {
+    try {
+      const response = await fetch('/api/tasks');
+      if (response.ok) {
+        myTasks = await response.json(); // Overwrite empty list with real database data!
+        renderCalendar(currentMonth, currentYear); // Redraw the calendar with the new data
+      }
+    } catch (error) {
+      console.error("Could not load tasks from cloud:", error);
+    }
+  }
+
+  // Call it immediately when the app starts
+  loadTasksFromCloud();
+
 
   // --- MODAL LOGIC --- //
   const taskModal = document.getElementById('task-modal');
@@ -52,6 +69,69 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = String(day).padStart(2, '0');
     return `${year}-${m}-${d}`;
   }
+
+  // Floating + button logic
+  btnAddTask.addEventListener('click', () => {
+    const today = new Date();
+    taskDateInput.value = formatDateForInput(today.getFullYear(), today.getMonth(), today.getDate());
+    taskModal.classList.remove('hidden');
+  });
+
+  // Close buttons
+  btnCancelTask.addEventListener('click', () => {
+    taskModal.classList.add('hidden');
+    taskForm.reset(); 
+  });
+
+  btnCloseDayView.addEventListener('click', () => {
+    dayViewModal.classList.add('hidden');
+  });
+
+  // Clicking "+ Add Task" from inside the Day View modal
+  btnOpenAddTask.addEventListener('click', () => {
+    dayViewModal.classList.add('hidden');
+    taskModal.classList.remove('hidden');
+  });
+
+  // Handle saving a task (UPDATED FOR CLOUD!)
+  taskForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); 
+    
+    // Change the save button text so you know it's working
+    const submitBtn = taskForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Saving...";
+
+    const newTask = {
+      task_date: document.getElementById('task-date').value,
+      system_name: document.getElementById('task-system').value,
+      task_title: document.getElementById('task-title').value
+    };
+
+    try {
+      // 1. Send it to the database FIRST
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTask)
+      });
+
+      if (response.ok) {
+        // 2. If the database says "Success!", update the calendar
+        myTasks.push(newTask);
+        renderCalendar(currentMonth, currentYear); 
+        
+        taskModal.classList.add('hidden');
+        taskForm.reset();
+      } else {
+        alert("Error saving to database. Check Cloudflare bindings.");
+      }
+    } catch (error) {
+      alert("Network error. Could not reach the cloud.");
+    } finally {
+      submitBtn.textContent = originalText;
+    }
+  });
 
   // Floating + button logic
   btnAddTask.addEventListener('click', () => {
