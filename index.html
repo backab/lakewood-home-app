@@ -144,45 +144,58 @@
   </div>
 </nav>
 
-<script src="app.js"></script>
-  <div>
-          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Home System</label>
-          <div class="relative">
-            <select id="task-system" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium appearance-none pr-10" required>
-              <option value="General">General Home</option>
-              <option value="Well Water">Well Water</option>
-              <option value="Hot Tub">Hot Tub</option>
-              <option value="Septic Drip">Septic Drip</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#9A8C7E]">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
+<div id="task-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
+  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
+    <h2 class="text-xl font-bold text-[#3E342B] mb-5">Add New Task</h2>
+    
+    <form id="task-form" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Date</label>
+        <input type="date" id="task-date" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Home System</label>
+        <div class="relative">
+          <select id="task-system" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium appearance-none pr-10" required>
+            <option value="General">General Home</option>
+            <option value="Well Water">Well Water</option>
+            <option value="Hot Tub">Hot Tub</option>
+            <option value="Septic Drip">Septic Drip</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#9A8C7E]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
           </div>
         </div>
-        <div id="day-view-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
-    <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
-      <h2 id="day-view-title" class="text-xl font-bold text-[#3E342B] mb-5">Tasks</h2>
+      </div>
       
-      <div id="day-view-tasks" class="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar">
-        </div>
+      <div>
+        <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Task Name</label>
+        <input type="text" id="task-title" placeholder="e.g., Change sediment filter" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
+      </div>
       
       <div class="flex gap-3 pt-2">
-        <button type="button" id="btn-close-day-view" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9] transition">Close</button>
-        <button type="button" id="btn-open-add-task" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] transition shadow-lg">+ Add Task</button>
+        <button type="button" id="btn-cancel-task" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9] transition">Cancel</button>
+        <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] transition shadow-lg">Save Task</button>
       </div>
+    </form>
+  </div>
+</div>
+
+<div id="day-view-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
+  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
+    <h2 id="day-view-title" class="text-xl font-bold text-[#3E342B] mb-5">Tasks</h2>
+    
+    <div id="day-view-tasks" class="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar">
+      </div>
+    
+    <div class="flex gap-3 pt-2">
+      <button type="button" id="btn-close-day-view" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9] transition">Close</button>
+      <button type="button" id="btn-open-add-task" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] transition shadow-lg">+ Add Task</button>
     </div>
   </div>
-        <div>
-          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Task Name</label>
-          <input type="text" id="task-title" placeholder="e.g., Change sediment filter" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
-        </div>
-        
-        <div class="flex gap-3 pt-2">
-          <button type="button" id="btn-cancel-task" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA] hover:bg-[#EAE4D9] transition">Cancel</button>
-          <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] transition shadow-lg">Save Task</button>
-        </div>
-      </form>
-    </div>
-  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
