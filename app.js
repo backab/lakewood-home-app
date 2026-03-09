@@ -166,44 +166,46 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- UNDO TO-DO LOGIC --- //
-  let lastCompletedTodo = null; // Memory for the undo button!
+  let lastCompletedTodo = null; 
 
   window.completeTodo = async function(id, type) {
-    // Save the memory and show the button
     lastCompletedTodo = { id, type };
-    document.getElementById('undo-container').classList.remove('hidden');
+    const undoContainer = document.getElementById('undo-container');
+    if (undoContainer) undoContainer.classList.remove('hidden');
 
     if (type === 'manual') {
       await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 1}) });
     } else {
       const t = myTasks.find(task => task.id == id);
-      t.show_in_todo = false;
-      await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+      if (t) {
+        t.show_in_todo = false;
+        await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+      }
     }
     loadDataFromCloud();
   }
 
-  // The actual Undo Button click handler
-  document.getElementById('btn-undo-todo').addEventListener('click', async () => {
-    if (!lastCompletedTodo) return;
-    const { id, type } = lastCompletedTodo;
-    
-    // We reverse what we just did!
-    if (type === 'manual') {
-      await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 0}) });
-    } else {
-      const t = myTasks.find(task => task.id == id);
-      if (t) {
-         t.show_in_todo = true;
-         await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+  const btnUndo = document.getElementById('btn-undo-todo');
+  if (btnUndo) {
+    btnUndo.addEventListener('click', async () => {
+      if (!lastCompletedTodo) return;
+      const { id, type } = lastCompletedTodo;
+      
+      if (type === 'manual') {
+        await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 0}) });
+      } else {
+        const t = myTasks.find(task => task.id == id);
+        if (t) {
+           t.show_in_todo = true;
+           await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+        }
       }
-    }
-    
-    // Clear memory and hide button
-    lastCompletedTodo = null;
-    document.getElementById('undo-container').classList.add('hidden');
-    loadDataFromCloud();
-  });
+      
+      lastCompletedTodo = null;
+      document.getElementById('undo-container').classList.add('hidden');
+      loadDataFromCloud();
+    });
+  }
 
   function renderTodoList() {
     const list = document.getElementById('todo-list');
@@ -285,40 +287,50 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDataFromCloud();
   });
 
-  document.getElementById('btn-add-system').addEventListener('click', () => {
-    document.getElementById('system-form').reset();
-    document.getElementById('sys-id').value = "";
-    document.getElementById('sys-existing-image').value = "";
-    document.getElementById('sys-modal-title').textContent = "Add Home System";
-    
-    // Hide delete button when adding new!
-    document.getElementById('btn-delete-sys').classList.add('hidden');
-    document.getElementById('system-form-modal').classList.remove('hidden');
-  });
+  const btnAddSys = document.getElementById('btn-add-system');
+  if (btnAddSys) {
+    btnAddSys.addEventListener('click', () => {
+      document.getElementById('system-form').reset();
+      document.getElementById('sys-id').value = "";
+      document.getElementById('sys-existing-image').value = "";
+      document.getElementById('sys-modal-title').textContent = "Add Home System";
+      
+      const delBtn = document.getElementById('btn-delete-sys');
+      if (delBtn) delBtn.classList.add('hidden');
+      
+      document.getElementById('system-form-modal').classList.remove('hidden');
+    });
+  }
 
-  document.getElementById('btn-edit-sys-detail').addEventListener('click', () => {
-    document.getElementById('system-detail-modal').classList.add('hidden');
-    document.getElementById('sys-modal-title').textContent = "Edit System";
-    document.getElementById('sys-id').value = currentlyViewedSystem.id;
-    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
-    document.getElementById('sys-name').value = currentlyViewedSystem.name;
-    document.getElementById('sys-desc').value = currentlyViewedSystem.description;
-    document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
-    
-    // Show delete button when editing!
-    document.getElementById('btn-delete-sys').classList.remove('hidden');
-    document.getElementById('system-form-modal').classList.remove('hidden');
-  });
+  const btnEditSys = document.getElementById('btn-edit-sys-detail');
+  if (btnEditSys) {
+    btnEditSys.addEventListener('click', () => {
+      document.getElementById('system-detail-modal').classList.add('hidden');
+      document.getElementById('sys-modal-title').textContent = "Edit System";
+      document.getElementById('sys-id').value = currentlyViewedSystem.id;
+      document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
+      document.getElementById('sys-name').value = currentlyViewedSystem.name;
+      document.getElementById('sys-desc').value = currentlyViewedSystem.description;
+      document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
+      
+      const delBtn = document.getElementById('btn-delete-sys');
+      if (delBtn) delBtn.classList.remove('hidden');
+      
+      document.getElementById('system-form-modal').classList.remove('hidden');
+    });
+  }
 
   // Handle System Deletion
-  document.getElementById('btn-delete-sys').addEventListener('click', async () => {
-    if(!confirm("Are you sure you want to delete this system?")) return;
-    const id = document.getElementById('sys-id').value;
-    await fetch(`/api/systems?id=${id}`, { method: 'DELETE' });
-    document.getElementById('system-form-modal').classList.add('hidden');
-    loadDataFromCloud();
-  });
-
+  const btnDeleteSys = document.getElementById('btn-delete-sys');
+  if (btnDeleteSys) {
+    btnDeleteSys.addEventListener('click', async () => {
+      if(!confirm("Are you sure you want to delete this system?")) return;
+      const id = document.getElementById('sys-id').value;
+      await fetch(`/api/systems?id=${id}`, { method: 'DELETE' });
+      document.getElementById('system-form-modal').classList.add('hidden');
+      loadDataFromCloud();
+    });
+  }
 
   // --- CALENDAR RENDERING --- //
   const calendarGrid = document.getElementById('calendar-grid');
