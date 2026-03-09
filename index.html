@@ -12,10 +12,10 @@
   
   <header class="pt-14 pb-4 px-6 flex justify-between items-center">
     <div>
-      <p class="text-xs font-bold tracking-widest text-[#9A8C7E] uppercase mb-1">Welcome Home</p>
-      <h1 class="text-2xl font-bold tracking-wide text-[#3E342B]">7015 Phillips Rd</h1>
+      <p id="home-subtitle" class="text-xs font-bold tracking-widest text-[#9A8C7E] uppercase mb-1">Welcome Home</p>
+      <h1 id="home-title" class="text-2xl font-bold tracking-wide text-[#3E342B]">7015 Phillips Rd</h1>
     </div>
-    <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+    <div id="btn-header-settings" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer hover:bg-[#EAE4D9] transition">
        <span class="text-lg text-[#5A4C40]">⚙️</span>
     </div>
   </header>
@@ -34,8 +34,7 @@
 
     <div>
       <h3 class="text-lg font-bold text-[#3E342B] mb-3 px-1">Upcoming Maintenance</h3>
-      <div id="home-upcoming-tasks" class="space-y-3">
-        </div>
+      <div id="home-upcoming-tasks" class="space-y-3"></div>
     </div>
 
     <div>
@@ -50,21 +49,16 @@
   <div id="view-systems" class="hidden space-y-6 relative pb-16">
     <h2 class="text-2xl font-bold text-[#3E342B] px-1">My Systems</h2>
     <div id="tab-systems-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 no-scrollbar"></div>
-    <button id="btn-add-system" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-    </button>
+    <button id="btn-add-system" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
   </div>
 
   <div id="view-tasks" class="hidden relative pb-16">
     <h2 class="text-2xl font-bold text-[#3E342B] mb-6 px-1">To-Do List</h2>
-    
     <form id="todo-form" class="flex gap-2 mb-6">
       <input type="text" id="todo-input" placeholder="Add a quick to-do..." class="flex-1 bg-white shadow-sm text-[#3E342B] rounded-2xl p-4 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
       <button type="submit" class="w-14 h-14 bg-[#5A4C40] text-white rounded-2xl shadow-sm flex items-center justify-center font-bold text-xl">+</button>
     </form>
-
-    <div id="todo-list" class="space-y-3">
-      </div>
+    <div id="todo-list" class="space-y-3"></div>
   </div>
 
   <div id="view-calendar" class="hidden space-y-6 relative pb-16">
@@ -74,23 +68,30 @@
         <h2 id="calendar-month-year" class="text-lg font-bold text-[#3E342B]"></h2>
         <button id="next-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
       </div>
-      <div class="grid grid-cols-7 text-center text-xs font-bold text-[#9A8C7E] mb-2">
-        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-      </div>
+      <div class="grid grid-cols-7 text-center text-xs font-bold text-[#9A8C7E] mb-2"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
       <div id="calendar-grid" class="grid grid-cols-7 text-center gap-y-2 text-[#3E342B] font-medium text-sm"></div>
     </div>
-    <button id="btn-add-task" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-    </button>
+    <button id="btn-add-task" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
   </div>
 
-  <div id="view-profile" class="hidden space-y-6">
+  <div id="view-profile" class="hidden space-y-6 pb-16">
     <h2 class="text-2xl font-bold text-[#3E342B] px-1">App Settings</h2>
     <div class="bg-white shadow-sm rounded-[24px] p-6">
-      <h3 class="font-bold text-[#3E342B] mb-4">Update Home Image</h3>
+      <h3 class="font-bold text-[#3E342B] mb-4">Update App Appearance</h3>
       <form id="settings-form" class="space-y-4">
-        <input type="file" id="home-img-upload" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#E8EDDF] file:text-[#5A4C40] cursor-pointer" required>
-        <button type="submit" class="w-full py-3 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] shadow-md">Sync to Cloud</button>
+        <div>
+          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Homepage Subtitle</label>
+          <input type="text" id="set-subtitle" placeholder="Welcome Home" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Homepage Title</label>
+          <input type="text" id="set-title" placeholder="7015 Phillips Rd" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Cover Image</label>
+          <input type="file" id="home-img-upload" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40] cursor-pointer">
+        </div>
+        <button type="submit" class="w-full py-3 mt-4 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] shadow-md">Sync to Cloud</button>
       </form>
     </div>
   </div>
@@ -106,7 +107,7 @@
   </div>
 </nav>
 
-<div id="task-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity">
+<div id="task-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
   <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
     <h2 id="task-modal-title" class="text-xl font-bold text-[#3E342B] mb-5">Add New Task</h2>
     <form id="task-form" class="space-y-4">
@@ -121,12 +122,10 @@
           <option value="none">Just this day</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="annual">Annually</option>
         </select>
       </div>
-      
       <label class="flex items-center gap-3 bg-[#F4F1EA] p-3 rounded-2xl cursor-pointer">
         <input type="checkbox" id="task-show-todo" class="w-5 h-5 accent-[#5A4C40] rounded">
         <span class="text-sm font-bold text-[#3E342B]">Add to To-Do List</span>
       </label>
-
       <div class="flex gap-3 pt-2">
         <button type="button" onclick="document.getElementById('task-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Cancel</button>
         <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">Save</button>
@@ -136,7 +135,7 @@
 </div>
 
 <div id="system-form-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
-  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative">
+  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
     <h2 id="sys-modal-title" class="text-xl font-bold text-[#3E342B] mb-5">Add Home System</h2>
     <form id="system-form" class="space-y-4">
       <input type="hidden" id="sys-id" value="">
@@ -144,7 +143,7 @@
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Name</label><input type="text" id="sys-name" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none" required></div>
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Description</label><textarea id="sys-desc" rows="2" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none" required></textarea></div>
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Doc Link</label><input type="url" id="sys-link" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none"></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Image</label><input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40]"></div>
+      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Header Image</label><input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40]"></div>
       <div class="flex gap-3 pt-2">
         <button type="button" onclick="document.getElementById('system-form-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Cancel</button>
         <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">Save</button>
