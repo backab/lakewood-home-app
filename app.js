@@ -12,8 +12,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`btn-${activeTab}`).classList.remove('text-[#BBAEA0]');
     document.getElementById(`btn-${activeTab}`).classList.add('text-[#5A4C40]');
   }
-  tabs.forEach(tab => document.getElementById(`btn-${tab}`).addEventListener('click', () => switchTab(tab)));
-  document.getElementById('btn-header-settings').addEventListener('click', () => switchTab('profile'));
+  tabs.forEach(tab => {
+    const btn = document.getElementById(`btn-${tab}`);
+    if (btn) btn.addEventListener('click', () => switchTab(tab));
+  });
+  
+  const headerSettings = document.getElementById('btn-header-settings');
+  if (headerSettings) headerSettings.addEventListener('click', () => switchTab('profile'));
 
   // --- DATA STORAGE & SYNC --- //
   let myTasks = []; 
@@ -90,11 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch(e) { alert("Failed to acknowledge task."); }
   }
 
-
   // --- RENDERING LOGIC --- //
 
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
+    if(!container) return;
     container.innerHTML = '';
     const todayStr = new Date().toISOString().split('T')[0];
     let allUpcoming = getExpandedTasks().filter(t => t.task_date >= todayStr && !t.acknowledged);
@@ -130,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentlyViewedSystem = null; 
   function renderSystems(containerId) {
     const container = document.getElementById(containerId);
+    if(!container) return;
     container.innerHTML = '';
     mySystems.forEach(sys => {
       const card = document.createElement('div');
@@ -161,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function populateSystemDropdown() {
     const dropdown = document.getElementById('task-system');
+    if(!dropdown) return;
     dropdown.innerHTML = '<option value="General">General Home</option>';
     mySystems.forEach(sys => dropdown.innerHTML += `<option value="${sys.name}">${sys.name}</option>`);
   }
@@ -209,6 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTodoList() {
     const list = document.getElementById('todo-list');
+    if(!list) return;
     list.innerHTML = '';
     let count = 0;
     myTasks.filter(t => t.show_in_todo).forEach(task => {
@@ -231,61 +239,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- FORM HANDLERS --- //
 
-  document.getElementById('todo-form').addEventListener('submit', async(e) => {
-    e.preventDefault();
-    const input = document.getElementById('todo-input');
-    await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) });
-    input.value = '';
-    loadDataFromCloud();
-  });
+  const todoForm = document.getElementById('todo-form');
+  if (todoForm) {
+    todoForm.addEventListener('submit', async(e) => {
+      e.preventDefault();
+      const input = document.getElementById('todo-input');
+      await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) });
+      input.value = '';
+      loadDataFromCloud();
+    });
+  }
 
-  document.getElementById('settings-form').addEventListener('submit', async(e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button');
-    btn.textContent = "Syncing...";
-    const formData = new FormData();
-    formData.append('title', document.getElementById('set-title').value);
-    formData.append('subtitle', document.getElementById('set-subtitle').value);
-    const fileInput = document.getElementById('home-img-upload');
-    if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
-    await fetch('/api/settings', { method: 'POST', body: formData });
-    btn.textContent = "Sync to Cloud";
-    loadDataFromCloud();
-  });
+  const settingsForm = document.getElementById('settings-form');
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', async(e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = "Syncing...";
+      const formData = new FormData();
+      formData.append('title', document.getElementById('set-title').value);
+      formData.append('subtitle', document.getElementById('set-subtitle').value);
+      const fileInput = document.getElementById('home-img-upload');
+      if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
+      await fetch('/api/settings', { method: 'POST', body: formData });
+      btn.textContent = "Sync to Cloud";
+      loadDataFromCloud();
+    });
+  }
 
-  document.getElementById('task-form').addEventListener('submit', async (e) => {
-    e.preventDefault(); 
-    const id = document.getElementById('task-id').value;
-    const taskData = {
-      task_date: document.getElementById('task-date').value,
-      system_name: document.getElementById('task-system').value,
-      task_title: document.getElementById('task-title').value,
-      recurrence: document.getElementById('task-recurrence').value,
-      show_in_todo: document.getElementById('task-show-todo').checked
-    };
-    if (id) taskData.id = id;
-    await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
-    document.getElementById('task-modal').classList.add('hidden');
-    loadDataFromCloud(); 
-  });
+  const taskForm = document.getElementById('task-form');
+  if (taskForm) {
+    taskForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); 
+      const id = document.getElementById('task-id').value;
+      const taskData = {
+        task_date: document.getElementById('task-date').value,
+        system_name: document.getElementById('task-system').value,
+        task_title: document.getElementById('task-title').value,
+        recurrence: document.getElementById('task-recurrence').value,
+        show_in_todo: document.getElementById('task-show-todo').checked
+      };
+      if (id) taskData.id = id;
+      await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
+      document.getElementById('task-modal').classList.add('hidden');
+      loadDataFromCloud(); 
+    });
+  }
 
-  document.getElementById('system-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.textContent = "Saving...";
-    const formData = new FormData();
-    formData.append('id', document.getElementById('sys-id').value);
-    formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
-    formData.append('name', document.getElementById('sys-name').value);
-    formData.append('description', document.getElementById('sys-desc').value);
-    formData.append('doc_link', document.getElementById('sys-link').value);
-    const file = document.getElementById('sys-image').files[0];
-    if (file) formData.append('image', file);
-    await fetch('/api/systems', { method: 'POST', body: formData });
-    document.getElementById('system-form-modal').classList.add('hidden');
-    btn.textContent = "Save";
-    loadDataFromCloud();
-  });
+  const sysForm = document.getElementById('system-form');
+  if (sysForm) {
+    sysForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = "Saving...";
+      const formData = new FormData();
+      formData.append('id', document.getElementById('sys-id').value);
+      formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
+      formData.append('name', document.getElementById('sys-name').value);
+      formData.append('description', document.getElementById('sys-desc').value);
+      formData.append('doc_link', document.getElementById('sys-link').value);
+      const file = document.getElementById('sys-image').files[0];
+      if (file) formData.append('image', file);
+      await fetch('/api/systems', { method: 'POST', body: formData });
+      document.getElementById('system-form-modal').classList.add('hidden');
+      btn.textContent = "Save";
+      loadDataFromCloud();
+    });
+  }
 
   const btnAddSys = document.getElementById('btn-add-system');
   if (btnAddSys) {
@@ -337,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentMonth = new Date().getMonth(); let currentYear = new Date().getFullYear();
   
   function renderCalendar(month, year) {
+    if(!calendarGrid) return;
     calendarGrid.innerHTML = ""; 
     document.getElementById('calendar-month-year').textContent = `${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month]} ${year}`;
     const allTasks = getExpandedTasks();
@@ -381,8 +402,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.getElementById('prev-month').addEventListener('click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
-  document.getElementById('next-month').addEventListener('click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
+  const prevMonth = document.getElementById('prev-month');
+  if(prevMonth) prevMonth.addEventListener('click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
+  
+  const nextMonth = document.getElementById('next-month');
+  if(nextMonth) nextMonth.addEventListener('click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
 
   window.deleteTask = async function(id) {
     if(confirm("Delete task?")) { await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' }); document.getElementById('day-view-modal').classList.add('hidden'); loadDataFromCloud(); }
