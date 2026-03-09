@@ -54,10 +54,18 @@
 
   <div id="view-tasks" class="hidden relative pb-16">
     <h2 class="text-2xl font-bold text-[#3E342B] mb-6 px-1">To-Do List</h2>
-    <form id="todo-form" class="flex gap-2 mb-6">
+    <form id="todo-form" class="flex gap-2 mb-4">
       <input type="text" id="todo-input" placeholder="Add a quick to-do..." class="flex-1 bg-white shadow-sm text-[#3E342B] rounded-2xl p-4 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
       <button type="submit" class="w-14 h-14 bg-[#5A4C40] text-white rounded-2xl shadow-sm flex items-center justify-center font-bold text-xl">+</button>
     </form>
+    
+    <div id="undo-container" class="hidden mb-4">
+      <button id="btn-undo-todo" class="w-full py-3 bg-[#E8EDDF] text-[#5A4C40] rounded-[20px] font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-[#D5E0C9] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+        Undo last checked off item
+      </button>
+    </div>
+
     <div id="todo-list" class="space-y-3"></div>
   </div>
 
@@ -144,7 +152,9 @@
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Description</label><textarea id="sys-desc" rows="2" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none" required></textarea></div>
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Doc Link</label><input type="url" id="sys-link" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none"></div>
       <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Header Image</label><input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40]"></div>
+      
       <div class="flex gap-3 pt-2">
+        <button type="button" id="btn-delete-sys" class="hidden w-14 rounded-2xl font-bold text-red-500 bg-[#F4F1EA] hover:bg-red-50 flex items-center justify-center text-xl transition" title="Delete System">🗑️</button>
         <button type="button" onclick="document.getElementById('system-form-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Cancel</button>
         <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">Save</button>
       </div>
