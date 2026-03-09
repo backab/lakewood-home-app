@@ -151,11 +151,43 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // NEW: Click logic for days
+      // NEW: Click logic for days (Always opens Day View first)
       dayCell.addEventListener('click', () => {
+        
+        // 1. Set the title of the modal to the date clicked
+        document.getElementById('day-view-title').textContent = `Tasks for ${monthNames[month]} ${day}`;
+        
+        const tasksContainer = document.getElementById('day-view-tasks');
+        tasksContainer.innerHTML = ''; // Clear previous data
+        
+        // 2. Check if we have tasks. If yes, draw them. If no, show an empty state.
         if (dayTasks.length > 0) {
-          // If there are tasks, show the Day View modal
-          document.getElementById('day-view-title').textContent = `Tasks for ${monthNames[month]} ${day}`;
-          
+          dayTasks.forEach(task => {
+            const taskCard = document.createElement('div');
+            taskCard.className = "bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40]";
+            taskCard.innerHTML = `
+              <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
+              <p class="text-xs text-[#9A8C7E] mt-1 uppercase tracking-wider">${task.system_name}</p>
+            `;
+            tasksContainer.appendChild(taskCard);
+          });
+        } else {
+          // Empty state UI for days with no tasks
+          const emptyState = document.createElement('div');
+          emptyState.className = "text-center py-6";
+          emptyState.innerHTML = `
+            <div class="text-3xl mb-2 opacity-50">✨</div>
+            <p class="text-[#9A8C7E] text-sm font-medium">Nothing scheduled for today.</p>
+          `;
+          tasksContainer.appendChild(emptyState);
+        }
+        
+        // 3. Pre-fill the hidden form date so if they click "+ Add Task", it knows what day it is!
+        taskDateInput.value = dateString;
+        
+        // 4. Open the Day View modal
+        dayViewModal.classList.remove('hidden');
+      });
           const tasksContainer = document.getElementById('day-view-tasks');
           tasksContainer.innerHTML = ''; // Clear previous
           
