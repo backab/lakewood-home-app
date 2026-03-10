@@ -1,17 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  // --- UTILITY: SAFE LISTENER --- //
-  // This prevents the entire app from crashing if one button is missing!
-  function attachListener(id, eventType, callback) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener(eventType, callback);
-    }
-  }
-
   // --- TAB SWITCHING & GEAR ICON --- //
   const tabs = ['home', 'systems', 'tasks', 'calendar', 'profile'];
-  window.switchTab = function(activeTab) {
+  function switchTab(activeTab) {
     tabs.forEach(tab => {
       document.getElementById(`view-${tab}`).classList.add('hidden');
       document.getElementById(`btn-${tab}`).classList.remove('text-[#5A4C40]');
@@ -20,10 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`view-${activeTab}`).classList.remove('hidden');
     document.getElementById(`btn-${activeTab}`).classList.remove('text-[#BBAEA0]');
     document.getElementById(`btn-${activeTab}`).classList.add('text-[#5A4C40]');
-  };
-  
-  tabs.forEach(tab => attachListener(`btn-${tab}`, 'click', () => switchTab(tab)));
-  attachListener('btn-header-settings', 'click', () => switchTab('profile'));
+  }
+  tabs.forEach(tab => {
+    const btn = document.getElementById(`btn-${tab}`);
+    if(btn) btn.addEventListener('click', () => switchTab(tab));
+  });
+  const headerSettings = document.getElementById('btn-header-settings');
+  if(headerSettings) headerSettings.addEventListener('click', () => switchTab('profile'));
 
   // --- DATA STORAGE & SYNC --- //
   let myTasks = []; 
@@ -77,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return expanded;
   }
 
-  // --- ACTIONS (Push Back, Ack, Edit, Delete) --- //
   window.pushBackTask = async function(id, daysToAdd) {
     if (!daysToAdd) return; 
     const task = myTasks.find(t => t.id === id);
@@ -123,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.remove('hidden');
   }
 
-  // --- RENDERING VIEWS --- //
+  // --- RENDERING LOGIC --- //
 
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
@@ -293,127 +286,154 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- SAFE EVENT BINDINGS FOR BUTTONS & FORMS --- //
-
-  attachListener('prev-month', 'click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
-  attachListener('next-month', 'click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
+  // --- EVENT LISTENERS FOR BUTTONS AND FORMS --- //
+  
+  const prevMonth = document.getElementById('prev-month');
+  if(prevMonth) prevMonth.addEventListener('click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
+  
+  const nextMonth = document.getElementById('next-month');
+  if(nextMonth) nextMonth.addEventListener('click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
 
   // Add Task Button (Calendar Tab)
-  attachListener('btn-add-task', 'click', () => {
-    document.getElementById('task-id').value = '';
-    document.getElementById('task-form').reset();
-    document.getElementById('task-modal-title').textContent = "Add New Task";
-    document.getElementById('task-modal').classList.remove('hidden');
-  });
+  const btnAddTask = document.getElementById('btn-add-task');
+  if (btnAddTask) {
+    btnAddTask.addEventListener('click', () => {
+      document.getElementById('task-id').value = '';
+      document.getElementById('task-form').reset();
+      document.getElementById('task-modal-title').textContent = "Add New Task";
+      document.getElementById('task-modal').classList.remove('hidden');
+    });
+  }
+
+  // Add System Button (Systems Tab)
+  const btnAddSystem = document.getElementById('btn-add-system');
+  if (btnAddSystem) {
+    btnAddSystem.addEventListener('click', () => {
+      document.getElementById('system-form').reset();
+      document.getElementById('sys-id').value = "";
+      document.getElementById('sys-existing-image').value = "";
+      document.getElementById('sys-modal-title').textContent = "Add Home System";
+      document.getElementById('btn-delete-sys').classList.add('hidden');
+      document.getElementById('system-form-modal').classList.remove('hidden');
+    });
+  }
 
   // Undo Todo Button
-  attachListener('btn-undo-todo', 'click', async () => {
-    if (!lastCompletedTodo) return;
-    const { id, type } = lastCompletedTodo;
-    
-    if (type === 'manual') {
-      await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 0}) });
-    } else {
-      const t = myTasks.find(task => task.id == id);
-      if (t) {
-         t.show_in_todo = true;
-         await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+  const btnUndoTodo = document.getElementById('btn-undo-todo');
+  if (btnUndoTodo) {
+    btnUndoTodo.addEventListener('click', async () => {
+      if (!lastCompletedTodo) return;
+      const { id, type } = lastCompletedTodo;
+      if (type === 'manual') {
+        await fetch('/api/todos', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id, is_completed: 0}) });
+      } else {
+        const t = myTasks.find(task => task.id == id);
+        if (t) {
+          t.show_in_todo = true;
+          await fetch('/api/tasks', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(t) });
+        }
       }
-    }
-    
-    lastCompletedTodo = null;
-    document.getElementById('undo-container').classList.add('hidden');
-    loadDataFromCloud();
-  });
+      lastCompletedTodo = null;
+      document.getElementById('undo-container').classList.add('hidden');
+      loadDataFromCloud();
+    });
+  }
 
   // Delete System Button
-  attachListener('btn-delete-sys', 'click', async (e) => {
-    e.preventDefault(); // Prevent form from reloading page
-    if(!confirm("Are you sure you want to delete this system?")) return;
-    const id = document.getElementById('sys-id').value;
-    await fetch(`/api/systems?id=${id}`, { method: 'DELETE' });
-    document.getElementById('system-form-modal').classList.add('hidden');
-    loadDataFromCloud();
-  });
-
-  // Add System Button
-  attachListener('btn-add-system', 'click', () => {
-    document.getElementById('system-form').reset();
-    document.getElementById('sys-id').value = "";
-    document.getElementById('sys-existing-image').value = "";
-    document.getElementById('sys-modal-title').textContent = "Add Home System";
-    document.getElementById('btn-delete-sys').classList.add('hidden');
-    document.getElementById('system-form-modal').classList.remove('hidden');
-  });
+  const btnDeleteSys = document.getElementById('btn-delete-sys');
+  if (btnDeleteSys) {
+    btnDeleteSys.addEventListener('click', async (e) => {
+      e.preventDefault(); 
+      if(!confirm("Are you sure you want to delete this system?")) return;
+      const id = document.getElementById('sys-id').value;
+      await fetch(`/api/systems?id=${id}`, { method: 'DELETE' });
+      document.getElementById('system-form-modal').classList.add('hidden');
+      loadDataFromCloud();
+    });
+  }
 
   // Edit System Pencil Icon
-  attachListener('btn-edit-sys-detail', 'click', () => {
-    document.getElementById('system-detail-modal').classList.add('hidden');
-    document.getElementById('sys-modal-title').textContent = "Edit System";
-    document.getElementById('sys-id').value = currentlyViewedSystem.id;
-    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
-    document.getElementById('sys-name').value = currentlyViewedSystem.name;
-    document.getElementById('sys-desc').value = currentlyViewedSystem.description;
-    document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
-    document.getElementById('btn-delete-sys').classList.remove('hidden');
-    document.getElementById('system-form-modal').classList.remove('hidden');
-  });
+  const btnEditSysDetail = document.getElementById('btn-edit-sys-detail');
+  if (btnEditSysDetail) {
+    btnEditSysDetail.addEventListener('click', () => {
+      document.getElementById('system-detail-modal').classList.add('hidden');
+      document.getElementById('sys-modal-title').textContent = "Edit System";
+      document.getElementById('sys-id').value = currentlyViewedSystem.id;
+      document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
+      document.getElementById('sys-name').value = currentlyViewedSystem.name;
+      document.getElementById('sys-desc').value = currentlyViewedSystem.description;
+      document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
+      document.getElementById('btn-delete-sys').classList.remove('hidden');
+      document.getElementById('system-form-modal').classList.remove('hidden');
+    });
+  }
 
   // Form Submissions
-  attachListener('todo-form', 'submit', async(e) => {
-    e.preventDefault();
-    const input = document.getElementById('todo-input');
-    await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) });
-    input.value = '';
-    loadDataFromCloud();
-  });
+  const todoForm = document.getElementById('todo-form');
+  if (todoForm) {
+    todoForm.addEventListener('submit', async(e) => {
+      e.preventDefault();
+      const input = document.getElementById('todo-input');
+      await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) });
+      input.value = '';
+      loadDataFromCloud();
+    });
+  }
 
-  attachListener('settings-form', 'submit', async(e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button');
-    btn.textContent = "Syncing...";
-    const formData = new FormData();
-    formData.append('title', document.getElementById('set-title').value);
-    formData.append('subtitle', document.getElementById('set-subtitle').value);
-    const fileInput = document.getElementById('home-img-upload');
-    if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
-    await fetch('/api/settings', { method: 'POST', body: formData });
-    btn.textContent = "Sync to Cloud";
-    loadDataFromCloud();
-  });
+  const settingsForm = document.getElementById('settings-form');
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', async(e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = "Syncing...";
+      const formData = new FormData();
+      formData.append('title', document.getElementById('set-title').value);
+      formData.append('subtitle', document.getElementById('set-subtitle').value);
+      const fileInput = document.getElementById('home-img-upload');
+      if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
+      await fetch('/api/settings', { method: 'POST', body: formData });
+      btn.textContent = "Sync to Cloud";
+      loadDataFromCloud();
+    });
+  }
 
-  attachListener('task-form', 'submit', async (e) => {
-    e.preventDefault(); 
-    const id = document.getElementById('task-id').value;
-    const taskData = {
-      task_date: document.getElementById('task-date').value,
-      system_name: document.getElementById('task-system').value,
-      task_title: document.getElementById('task-title').value,
-      recurrence: document.getElementById('task-recurrence').value,
-      show_in_todo: document.getElementById('task-show-todo').checked
-    };
-    if (id) taskData.id = id;
-    await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
-    document.getElementById('task-modal').classList.add('hidden');
-    loadDataFromCloud(); 
-  });
+  const taskForm = document.getElementById('task-form');
+  if (taskForm) {
+    taskForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); 
+      const id = document.getElementById('task-id').value;
+      const taskData = {
+        task_date: document.getElementById('task-date').value,
+        system_name: document.getElementById('task-system').value,
+        task_title: document.getElementById('task-title').value,
+        recurrence: document.getElementById('task-recurrence').value,
+        show_in_todo: document.getElementById('task-show-todo').checked
+      };
+      if (id) taskData.id = id;
+      await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
+      document.getElementById('task-modal').classList.add('hidden');
+      loadDataFromCloud(); 
+    });
+  }
 
-  attachListener('system-form', 'submit', async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.textContent = "Saving...";
-    const formData = new FormData();
-    formData.append('id', document.getElementById('sys-id').value);
-    formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
-    formData.append('name', document.getElementById('sys-name').value);
-    formData.append('description', document.getElementById('sys-desc').value);
-    formData.append('doc_link', document.getElementById('sys-link').value);
-    const file = document.getElementById('sys-image').files[0];
-    if (file) formData.append('image', file);
-    await fetch('/api/systems', { method: 'POST', body: formData });
-    document.getElementById('system-form-modal').classList.add('hidden');
-    btn.textContent = "Save";
-    loadDataFromCloud();
-  });
-
+  const sysForm = document.getElementById('system-form');
+  if (sysForm) {
+    sysForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = "Saving...";
+      const formData = new FormData();
+      formData.append('id', document.getElementById('sys-id').value);
+      formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
+      formData.append('name', document.getElementById('sys-name').value);
+      formData.append('description', document.getElementById('sys-desc').value);
+      formData.append('doc_link', document.getElementById('sys-link').value);
+      const file = document.getElementById('sys-image').files[0];
+      if (file) formData.append('image', file);
+      await fetch('/api/systems', { method: 'POST', body: formData });
+      document.getElementById('system-form-modal').classList.add('hidden');
+      btn.textContent = "Save";
+      loadDataFromCloud();
+    });
+  }
 });
