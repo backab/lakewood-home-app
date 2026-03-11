@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   
   // --- UTILITY: SAFE LISTENER --- //
-  // This prevents the app from breaking if a button is temporarily hidden
   function attachListener(id, eventType, callback) {
     const el = document.getElementById(id);
     if (el) {
@@ -14,12 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.switchTab = function(activeTab) {
     tabs.forEach(tab => {
       document.getElementById(`view-${tab}`).classList.add('hidden');
-      document.getElementById(`btn-${tab}`).classList.remove('text-[#5A4C40]');
-      document.getElementById(`btn-${tab}`).classList.add('text-[#BBAEA0]');
+      document.getElementById(`btn-${tab}`).classList.remove('text-ochre');
+      document.getElementById(`btn-${tab}`).classList.add('text-textmuted');
     });
     document.getElementById(`view-${activeTab}`).classList.remove('hidden');
-    document.getElementById(`btn-${activeTab}`).classList.remove('text-[#BBAEA0]');
-    document.getElementById(`btn-${activeTab}`).classList.add('text-[#5A4C40]');
+    document.getElementById(`btn-${activeTab}`).classList.remove('text-textmuted');
+    document.getElementById(`btn-${activeTab}`).classList.add('text-ochre');
   };
   
   tabs.forEach(tab => attachListener(`btn-${tab}`, 'click', () => switchTab(tab)));
@@ -77,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return expanded;
   }
 
-  // --- ACTIONS (Push Back, Ack, Edit, Delete) --- //
+  // --- ACTIONS --- //
   window.pushBackTask = async function(id, daysToAdd) {
     if (!daysToAdd) return; 
     const task = myTasks.find(t => t.id === id);
@@ -135,25 +134,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextThree = allUpcoming.slice(0, 3);
 
     if (nextThree.length === 0) {
-      container.innerHTML = `<p class="text-sm text-[#9A8C7E] italic">All caught up!</p>`;
+      container.innerHTML = `<p class="text-sm text-textmuted italic">All caught up!</p>`;
       return;
     }
 
     nextThree.forEach(task => {
+      // PRETTY UPDATE: Border is now dustyblue!
       const actionUI = task.is_virtual ? '' : `
-        <div class="border-t border-[#EAE4D9] mt-3 pt-3 flex justify-between items-center">
-          <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#F4F1EA] rounded-lg px-2 py-1.5 outline-none cursor-pointer">
+        <div class="border-t border-black/5 mt-3 pt-4 flex justify-between items-center">
+          <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-textmuted bg-oatmeal rounded-lg px-3 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-ochre/30 transition">
             <option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option>
           </select>
-          <button onclick="acknowledgeTask(${task.id})" class="w-8 h-8 flex items-center justify-center bg-[#E8EDDF] text-[#5A4C40] rounded-full hover:bg-[#D5E0C9] transition shadow-sm" title="Acknowledge & Mute">
+          <button onclick="acknowledgeTask(${task.id})" class="w-9 h-9 flex items-center justify-center bg-ochre/10 text-ochre rounded-full hover:bg-ochre hover:text-white transition shadow-sm" title="Acknowledge & Mute">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
           </button>
         </div>`;
       container.innerHTML += `
-        <div class="bg-white rounded-[20px] p-4 flex flex-col border-l-4 border-[#5A4C40] shadow-sm transition hover:shadow-md">
+        <div class="bg-white rounded-[24px] p-5 flex flex-col border-l-4 border-dustyblue shadow-soft transition hover:shadow-lg">
           <div class="flex-1 cursor-pointer" onclick="editTask(${task.id})">
-            <h4 class="font-bold text-[#3E342B] text-sm">${task.task_title}</h4>
-            <p class="text-xs text-[#9A8C7E] mt-0.5">${task.task_date} • ${task.system_name}</p>
+            <h4 class="font-serif font-bold text-textmain text-lg">${task.task_title}</h4>
+            <p class="text-xs text-textmuted mt-1 font-medium">${task.task_date} • ${task.system_name}</p>
           </div>
           ${actionUI}
         </div>`;
@@ -167,16 +167,16 @@ document.addEventListener("DOMContentLoaded", () => {
     container.innerHTML = '';
     mySystems.forEach(sys => {
       const card = document.createElement('div');
-      card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-sm border border-[#EAE4D9] cursor-pointer";
+      card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-soft border border-black/5 cursor-pointer";
       const taskCount = myTasks.filter(t => t.system_name === sys.name).length;
       card.innerHTML = `
         <div class="h-48 rounded-[24px] overflow-hidden relative mb-4">
-          <img src="${sys.image_url}" class="w-full h-full object-cover" />
-          <div class="absolute inset-0 bg-gradient-to-t from-[#3E342B]/60 to-transparent"></div>
+          <img src="${sys.image_url}" class="w-full h-full object-cover bg-black/5" />
+          <div class="absolute inset-0 bg-gradient-to-t from-textmain/60 to-transparent"></div>
         </div>
         <div class="px-4 pb-4">
-          <h3 class="text-xl font-bold text-[#3E342B] truncate">${sys.name}</h3>
-          <p class="text-sm text-[#9A8C7E] mt-1 font-medium">${taskCount} Scheduled Tasks</p>
+          <h3 class="text-xl font-serif font-bold text-textmain truncate">${sys.name}</h3>
+          <p class="text-sm text-textmuted mt-1 font-medium">${taskCount} Scheduled Tasks</p>
         </div>
       `;
       card.addEventListener('click', () => {
@@ -228,19 +228,19 @@ document.addEventListener("DOMContentLoaded", () => {
     myTasks.filter(t => t.show_in_todo).forEach(task => {
       count++;
       list.innerHTML += `
-        <div class="flex items-center gap-4 bg-[#BBAEA0] text-white p-4 rounded-2xl shadow-sm mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${task.id}, 'calendar')">
+        <div class="flex items-center gap-4 bg-sage text-white p-5 rounded-2xl shadow-soft mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${task.id}, 'calendar')">
           <div class="w-6 h-6 rounded-full border-2 border-white flex-shrink-0 flex items-center justify-center"></div>
-          <div><span class="font-bold text-sm block">${task.task_title}</span><span class="text-xs opacity-80 uppercase tracking-widest">${task.task_date}</span></div>
+          <div><span class="font-bold font-serif text-base block">${task.task_title}</span><span class="text-xs opacity-80 uppercase tracking-widest">${task.task_date}</span></div>
         </div>`;
     });
     myTodos.forEach(todo => {
       count++;
       list.innerHTML += `
-        <div class="flex items-center gap-4 bg-[#EAE4D9] text-[#5A4C40] p-4 rounded-[20px] shadow-sm mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${todo.id}, 'manual')">
-          <div class="w-6 h-6 rounded-full border-2 border-[#9A8C7E] flex-shrink-0"></div><span class="font-bold text-sm block">${todo.text}</span>
+        <div class="flex items-center gap-4 bg-white text-textmain p-5 rounded-[20px] shadow-soft mb-3 cursor-pointer hover:opacity-90 transition" onclick="completeTodo(${todo.id}, 'manual')">
+          <div class="w-6 h-6 rounded-full border-2 border-textmuted/40 flex-shrink-0"></div><span class="font-bold font-serif text-base block">${todo.text}</span>
         </div>`;
     });
-    if(count === 0) list.innerHTML = `<p class="text-center text-sm text-[#9A8C7E] py-8">No open to-dos. Great job!</p>`;
+    if(count === 0) list.innerHTML = `<p class="text-center text-sm text-textmuted py-8">No open to-dos. Great job!</p>`;
   }
 
   // --- CALENDAR RENDERING --- //
@@ -257,35 +257,41 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) {
       const cell = document.createElement('div');
       cell.textContent = day;
-      cell.classList.add('py-2', 'm-0.5', 'rounded-full', 'cursor-pointer');
+      cell.classList.add('py-2.5', 'm-0.5', 'rounded-full', 'cursor-pointer', 'transition');
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const dayTasks = allTasks.filter(t => t.task_date === dateStr);
 
-      if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) cell.classList.add('bg-[#5A4C40]', 'text-white'); 
-      else if (dayTasks.length > 0) cell.classList.add('bg-[#E8EDDF]', 'text-[#5A4C40]', 'font-bold', 'border', 'border-[#9A8C7E]');
-      else cell.classList.add('hover:bg-[#EAE4D9]'); 
+      if (day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+         cell.classList.add('bg-ochre', 'text-white', 'shadow-sm'); 
+      }
+      else if (dayTasks.length > 0) {
+         cell.classList.add('bg-dustyblue/10', 'text-textmain', 'font-bold', 'border', 'border-dustyblue/30');
+      }
+      else {
+         cell.classList.add('hover:bg-black/5'); 
+      }
 
       cell.addEventListener('click', () => {
         document.getElementById('day-view-title').textContent = `${dateStr}`;
         const container = document.getElementById('day-view-tasks');
         
         container.innerHTML = dayTasks.length ? dayTasks.map(t => `
-          <div class="bg-[#F4F1EA] rounded-[16px] p-4 border-l-4 border-[#5A4C40] flex flex-col gap-2">
+          <div class="bg-oatmeal rounded-[20px] p-5 border-l-4 border-dustyblue flex flex-col gap-3">
             <div class="flex justify-between items-center">
-              <div><h4 class="font-bold text-[#3E342B] text-sm">${t.task_title}</h4><p class="text-xs text-[#9A8C7E] mt-1">${t.system_name}</p></div>
-              ${t.is_virtual ? '' : `<div class="flex gap-3"><button onclick="editTask(${t.id})" class="text-[#9A8C7E] text-lg">✏️</button><button onclick="deleteTask(${t.id})" class="text-[#9A8C7E] text-lg">🗑️</button></div>`}
+              <div><h4 class="font-serif font-bold text-textmain text-lg">${t.task_title}</h4><p class="text-xs text-textmuted mt-1 font-medium">${t.system_name}</p></div>
+              ${t.is_virtual ? '' : `<div class="flex gap-4"><button onclick="editTask(${t.id})" class="text-textmuted hover:text-ochre text-lg transition">✏️</button><button onclick="deleteTask(${t.id})" class="text-textmuted hover:text-terracotta text-lg transition">🗑️</button></div>`}
             </div>
             ${t.is_virtual ? '' : `
-            <div class="border-t border-[#EAE4D9] pt-3 flex justify-between items-center">
-              <select onchange="pushBackTask(${t.id}, this.value); this.value='';" class="text-xs font-bold text-[#9A8C7E] bg-[#EAE4D9] rounded-lg px-2 py-1.5 outline-none cursor-pointer">
+            <div class="border-t border-black/5 pt-4 flex justify-between items-center">
+              <select onchange="pushBackTask(${t.id}, this.value); this.value='';" class="text-xs font-bold text-textmuted bg-white shadow-sm rounded-lg px-3 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-ochre/30 transition">
                 <option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option>
               </select>
               ${t.acknowledged ? 
-                `<span class="text-xs font-bold text-[#9A8C7E] italic flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Acknowledged</span>` : 
-                `<button onclick="acknowledgeTask(${t.id})" class="w-7 h-7 flex items-center justify-center bg-[#E8EDDF] text-[#5A4C40] rounded-full hover:bg-[#D5E0C9] transition" title="Acknowledge & Mute"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>`
+                `<span class="text-xs font-bold text-sage italic flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Acknowledged</span>` : 
+                `<button onclick="acknowledgeTask(${t.id})" class="w-8 h-8 flex items-center justify-center bg-white text-ochre shadow-sm rounded-full hover:bg-ochre hover:text-white transition" title="Acknowledge & Mute"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>`
               }
             </div>`}
-          </div>`).join('') : `<p class="text-center text-[#9A8C7E] py-4">Nothing scheduled.</p>`;
+          </div>`).join('') : `<p class="text-center text-textmuted py-6 italic">Nothing scheduled.</p>`;
         document.getElementById('task-date').value = dateStr;
         document.getElementById('day-view-modal').classList.remove('hidden');
       });
@@ -298,7 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('prev-month', 'click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
   attachListener('next-month', 'click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
 
-  // Add Task Button (Calendar Tab)
   attachListener('btn-add-task', 'click', () => {
     document.getElementById('task-id').value = '';
     document.getElementById('task-form').reset();
@@ -306,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.remove('hidden');
   });
 
-  // Add System Button (Systems Tab)
   attachListener('btn-add-system', 'click', () => {
     document.getElementById('system-form').reset();
     document.getElementById('sys-id').value = "";
@@ -319,7 +323,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form-modal').classList.remove('hidden');
   });
 
-  // Undo Todo Button
   attachListener('btn-undo-todo', 'click', async () => {
     if (!lastCompletedTodo) return;
     const { id, type } = lastCompletedTodo;
@@ -337,7 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDataFromCloud();
   });
 
-  // Delete System Button
   attachListener('btn-delete-sys', 'click', async (e) => {
     e.preventDefault(); 
     if(!confirm("Are you sure you want to delete this system?")) return;
@@ -347,7 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDataFromCloud();
   });
 
-  // Edit System Pencil Icon
   attachListener('btn-edit-sys-detail', 'click', () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('sys-modal-title').textContent = "Edit System";
@@ -363,7 +364,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form-modal').classList.remove('hidden');
   });
 
-  // Form Submissions
   attachListener('todo-form', 'submit', async(e) => {
     e.preventDefault();
     const input = document.getElementById('todo-input');
