@@ -310,19 +310,32 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.remove('hidden');
   });
 
-  // NEW: Add Task directly from the System Detail view!
   attachListener('btn-add-system-task', 'click', () => {
-    document.getElementById('system-detail-modal').classList.add('hidden'); // Hide the system detail
+    document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('task-id').value = '';
     document.getElementById('task-form').reset();
-    
-    // Magically pre-select the system dropdown
     if (currentlyViewedSystem) {
       document.getElementById('task-system').value = currentlyViewedSystem.name;
     }
+    document.getElementById('task-modal-title').textContent = "Add New Task";
+    document.getElementById('task-modal').classList.remove('hidden');
+  });
+
+  // NEW: Add Task from the Day View Modal (Preserves the clicked date!)
+  attachListener('btn-day-add-task', 'click', () => {
+    document.getElementById('day-view-modal').classList.add('hidden');
+    
+    // Save the date we clicked on before resetting!
+    const preservedDate = document.getElementById('task-date').value; 
+    
+    document.getElementById('task-form').reset(); 
+    document.getElementById('task-id').value = '';
+    
+    // Put the date back!
+    document.getElementById('task-date').value = preservedDate; 
     
     document.getElementById('task-modal-title').textContent = "Add New Task";
-    document.getElementById('task-modal').classList.remove('hidden'); // Pop open the task form
+    document.getElementById('task-modal').classList.remove('hidden');
   });
 
   attachListener('btn-add-system', 'click', () => {
