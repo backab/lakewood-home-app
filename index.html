@@ -4,63 +4,93 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>7015 Home Dashboard</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            oatmeal: '#FAF6F0',
+            sage: '#84A59D',
+            dustyblue: '#7D98A1',
+            terracotta: '#E27D60',
+            ochre: '#C86B28', 
+            textmain: '#3E342B',
+            textmuted: '#9A8C7E'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Lora', 'serif'],
+          },
+          boxShadow: {
+            'soft': '0 8px 30px rgba(0, 0, 0, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="min-h-screen bg-[#F4F1EA] text-[#5A4C40] font-sans pb-32 m-0 no-scrollbar">
+<body class="min-h-screen bg-oatmeal text-textmain font-sans pb-32 m-0 no-scrollbar">
   
   <header class="pt-14 pb-4 px-6 flex justify-between items-center">
     <div>
-      <p id="home-subtitle" class="text-xs font-bold tracking-widest text-[#9A8C7E] uppercase mb-1">Welcome Home</p>
-      <h1 id="home-title" class="text-2xl font-bold tracking-wide text-[#3E342B]">7015 Phillips Rd</h1>
+      <p id="home-subtitle" class="text-xs font-bold tracking-widest text-textmuted uppercase mb-1">Welcome Home</p>
+      <h1 id="home-title" class="text-3xl font-serif font-bold tracking-wide text-textmain">7015 Phillips Rd</h1>
     </div>
-    <div id="btn-header-settings" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer hover:bg-[#EAE4D9] transition">
-       <span class="text-lg text-[#5A4C40]">⚙️</span>
+    <div id="btn-header-settings" class="w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center cursor-pointer hover:bg-black/5 transition text-ochre">
+       <span class="text-lg">⚙️</span>
     </div>
   </header>
 
 <main class="px-6 space-y-8 pt-2">
   
   <div id="view-home" class="block space-y-8">
-    <div class="rounded-[32px] overflow-hidden relative h-64 shadow-md bg-white p-2">
-      <img id="main-home-image" src="" class="w-full h-full object-cover rounded-[24px] bg-[#EAE4D9]" />
-      <div class="absolute inset-0 bg-gradient-to-t from-[#3E342B]/80 via-transparent to-transparent rounded-[32px]"></div>
+    <div class="rounded-[32px] overflow-hidden relative h-64 shadow-soft bg-white p-2">
+      <img id="main-home-image" src="" class="w-full h-full object-cover rounded-[24px] bg-black/5" />
+      <div class="absolute inset-0 bg-gradient-to-t from-textmain/80 via-transparent to-transparent rounded-[32px]"></div>
       <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
-        <div><h2 class="text-white text-lg font-medium tracking-wide">System Status</h2><p class="text-white/80 text-sm mt-1 status-pulse">All systems running</p></div>
-        <div class="bg-white/20 backdrop-blur-md rounded-full px-3 py-1 border border-white/30 text-white text-xs font-semibold">Good</div>
+        <div><h2 class="text-white text-xl font-serif font-medium tracking-wide">System Status</h2><p class="text-white/80 text-sm mt-1 status-pulse">All systems running</p></div>
+        <div class="bg-sage/90 backdrop-blur-md rounded-full px-4 py-1.5 border border-white/30 text-white text-xs font-bold shadow-sm">Good</div>
       </div>
     </div>
 
     <div>
-      <h3 class="text-lg font-bold text-[#3E342B] mb-3 px-1">Upcoming Maintenance</h3>
-      <div id="home-upcoming-tasks" class="space-y-3"></div>
+      <h3 class="text-2xl font-serif font-bold text-textmain mb-4 px-1">Upcoming Maintenance</h3>
+      <div id="home-upcoming-tasks" class="space-y-4"></div>
     </div>
 
     <div>
-      <div class="flex justify-between items-center mb-3 px-1">
-        <h3 class="text-lg font-bold text-[#3E342B]">My Systems</h3>
-        <span onclick="document.getElementById('btn-systems').click()" class="text-xs font-bold text-[#9A8C7E] uppercase cursor-pointer">View All</span>
+      <div class="flex justify-between items-center mb-4 px-1">
+        <h3 class="text-2xl font-serif font-bold text-textmain">My Systems</h3>
+        <span onclick="document.getElementById('btn-systems').click()" class="text-xs font-bold text-ochre uppercase cursor-pointer hover:opacity-80 transition">View All</span>
       </div>
       <div id="home-systems-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 no-scrollbar"></div>
     </div>
   </div>
 
   <div id="view-systems" class="hidden space-y-6 relative pb-16">
-    <h2 class="text-2xl font-bold text-[#3E342B] px-1">My Systems</h2>
+    <h2 class="text-3xl font-serif font-bold text-textmain px-1">My Systems</h2>
     <div id="tab-systems-carousel" class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 no-scrollbar"></div>
-    <button id="btn-add-system" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
+    <button id="btn-add-system" class="fixed bottom-24 right-6 w-14 h-14 bg-ochre text-white rounded-full shadow-soft flex items-center justify-center hover:opacity-90 transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg></button>
   </div>
 
   <div id="view-tasks" class="hidden relative pb-16">
-    <h2 class="text-2xl font-bold text-[#3E342B] mb-6 px-1">To-Do List</h2>
+    <h2 class="text-3xl font-serif font-bold text-textmain mb-6 px-1">To-Do List</h2>
     <form id="todo-form" class="flex gap-2 mb-4">
-      <input type="text" id="todo-input" placeholder="Add a quick to-do..." class="flex-1 bg-white shadow-sm text-[#3E342B] rounded-2xl p-4 border-none focus:ring-2 focus:ring-[#5A4C40] outline-none font-medium" required>
-      <button type="submit" class="w-14 h-14 bg-[#5A4C40] text-white rounded-2xl shadow-sm flex items-center justify-center font-bold text-xl">+</button>
+      <input type="text" id="todo-input" placeholder="Add a quick to-do..." class="flex-1 bg-white shadow-soft text-textmain rounded-2xl p-4 border-none focus:ring-2 focus:ring-ochre outline-none font-medium" required>
+      <button type="submit" class="w-14 h-14 bg-ochre text-white rounded-2xl shadow-soft flex items-center justify-center font-bold text-xl hover:opacity-90 transition">+</button>
     </form>
     
     <div id="undo-container" class="hidden mb-4">
-      <button id="btn-undo-todo" class="w-full py-3 bg-[#E8EDDF] text-[#5A4C40] rounded-[20px] font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-[#D5E0C9] transition">
+      <button id="btn-undo-todo" class="w-full py-3 bg-sage/10 text-sage rounded-[20px] font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-sage/20 transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
         Undo last checked off item
       </button>
@@ -70,116 +100,119 @@
   </div>
 
   <div id="view-calendar" class="hidden space-y-6 relative pb-16">
-    <div class="bg-white shadow-sm rounded-[32px] p-5">
-      <div class="flex justify-between items-center mb-4 px-2">
-        <button id="prev-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-        <h2 id="calendar-month-year" class="text-lg font-bold text-[#3E342B]"></h2>
-        <button id="next-month" class="text-[#9A8C7E] hover:text-[#5A4C40] p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+    <div class="bg-white shadow-soft rounded-[32px] p-6">
+      <div class="flex justify-between items-center mb-6 px-2">
+        <button id="prev-month" class="text-textmuted hover:text-ochre p-1 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+        <h2 id="calendar-month-year" class="text-xl font-serif font-bold text-textmain"></h2>
+        <button id="next-month" class="text-textmuted hover:text-ochre p-1 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
       </div>
-      <div class="grid grid-cols-7 text-center text-xs font-bold text-[#9A8C7E] mb-2"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
-      <div id="calendar-grid" class="grid grid-cols-7 text-center gap-y-2 text-[#3E342B] font-medium text-sm"></div>
+      <div class="grid grid-cols-7 text-center text-xs font-bold text-textmuted mb-3"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+      <div id="calendar-grid" class="grid grid-cols-7 text-center gap-y-2 text-textmain font-medium text-sm"></div>
     </div>
-    <button id="btn-add-task" class="fixed bottom-24 right-6 w-14 h-14 bg-[#5A4C40] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#3E342B] transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
+    <button id="btn-add-task" class="fixed bottom-24 right-6 w-14 h-14 bg-ochre text-white rounded-full shadow-soft flex items-center justify-center hover:opacity-90 transition z-50"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg></button>
   </div>
 
   <div id="view-profile" class="hidden space-y-6 pb-16">
-    <h2 class="text-2xl font-bold text-[#3E342B] px-1">App Settings</h2>
-    <div class="bg-white shadow-sm rounded-[24px] p-6">
-      <h3 class="font-bold text-[#3E342B] mb-4">Update App Appearance</h3>
-      <form id="settings-form" class="space-y-4">
+    <h2 class="text-3xl font-serif font-bold text-textmain px-1">App Settings</h2>
+    <div class="bg-white shadow-soft rounded-[32px] p-6">
+      <h3 class="font-serif font-bold text-textmain mb-4 text-xl">App Appearance</h3>
+      <form id="settings-form" class="space-y-5">
         <div>
-          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Homepage Subtitle</label>
-          <input type="text" id="set-subtitle" placeholder="Welcome Home" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none font-medium">
+          <label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Homepage Subtitle</label>
+          <input type="text" id="set-subtitle" placeholder="Welcome Home" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none font-medium focus:ring-2 focus:ring-ochre/30">
         </div>
         <div>
-          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Homepage Title</label>
-          <input type="text" id="set-title" placeholder="7015 Phillips Rd" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none font-medium">
+          <label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Homepage Title</label>
+          <input type="text" id="set-title" placeholder="7015 Phillips Rd" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none font-medium focus:ring-2 focus:ring-ochre/30">
         </div>
         <div>
-          <label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Cover Image</label>
-          <input type="file" id="home-img-upload" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40] cursor-pointer">
+          <label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Cover Image</label>
+          <input type="file" id="home-img-upload" accept="image/*" class="w-full text-sm text-textmuted file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:bg-ochre/10 file:text-ochre file:font-bold cursor-pointer">
         </div>
-        <button type="submit" class="w-full py-3 mt-4 rounded-2xl font-bold text-white bg-[#5A4C40] hover:bg-[#3E342B] shadow-md">Sync to Cloud</button>
+        <button type="submit" class="w-full py-4 mt-2 rounded-2xl font-bold text-white bg-ochre hover:opacity-90 shadow-soft transition">Sync to Cloud</button>
       </form>
     </div>
   </div>
 </main>
 
-<nav class="fixed bottom-0 w-full bg-[#F4F1EA] border-t border-[#EAE4D9] pt-4 pb-8 z-50">
+<nav class="fixed bottom-0 w-full bg-oatmeal border-t border-black/5 pt-4 pb-8 z-50">
   <div class="flex justify-around items-center">
-    <button id="btn-home" class="flex flex-col items-center gap-1 text-[#5A4C40] transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></button>
-    <button id="btn-systems" class="flex flex-col items-center gap-1 text-[#BBAEA0] transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></button>
-    <button id="btn-tasks" class="flex flex-col items-center gap-1 text-[#BBAEA0] transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></button>
-    <button id="btn-calendar" class="flex flex-col items-center gap-1 text-[#BBAEA0] transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></button>
-    <button id="btn-profile" class="flex flex-col items-center gap-1 text-[#BBAEA0] transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></button>
+    <button id="btn-home" class="flex flex-col items-center gap-1 text-ochre transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></button>
+    <button id="btn-systems" class="flex flex-col items-center gap-1 text-textmuted transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></button>
+    <button id="btn-tasks" class="flex flex-col items-center gap-1 text-textmuted transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></button>
+    <button id="btn-calendar" class="flex flex-col items-center gap-1 text-textmuted transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></button>
+    <button id="btn-profile" class="flex flex-col items-center gap-1 text-textmuted transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></button>
   </div>
 </nav>
 
-<div id="task-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
-  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
-    <h2 id="task-modal-title" class="text-xl font-bold text-[#3E342B] mb-5">Add New Task</h2>
-    <form id="task-form" class="space-y-4">
+<div id="task-modal" class="fixed inset-0 bg-textmain/30 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+  <div class="bg-white rounded-[32px] p-8 w-full max-w-sm shadow-soft relative max-h-[90vh] overflow-y-auto no-scrollbar">
+    <h2 id="task-modal-title" class="text-2xl font-serif font-bold text-textmain mb-6">Add New Task</h2>
+    <form id="task-form" class="space-y-5">
       <input type="hidden" id="task-id" value="">
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Date</label><input type="date" id="task-date" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none" required></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">System</label>
-        <select id="task-system" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none" required></select>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Date</label><input type="date" id="task-date" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">System</label>
+        <select id="task-system" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></select>
       </div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Task Name</label><input type="text" id="task-title" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none" required></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Repeat</label>
-        <select id="task-recurrence" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none">
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Task Name</label><input type="text" id="task-title" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Repeat</label>
+        <select id="task-recurrence" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30">
           <option value="none">Just this day</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="annual">Annually</option>
         </select>
       </div>
-      <label class="flex items-center gap-3 bg-[#F4F1EA] p-3 rounded-2xl cursor-pointer">
-        <input type="checkbox" id="task-show-todo" class="w-5 h-5 accent-[#5A4C40] rounded">
-        <span class="text-sm font-bold text-[#3E342B]">Add to To-Do List</span>
+      <label class="flex items-center gap-3 bg-oatmeal p-4 rounded-2xl cursor-pointer hover:bg-black/5 transition">
+        <input type="checkbox" id="task-show-todo" class="w-5 h-5 accent-ochre rounded">
+        <span class="text-sm font-bold text-textmain">Add to To-Do List</span>
       </label>
-      <div class="flex gap-3 pt-2">
-        <button type="button" onclick="document.getElementById('task-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Cancel</button>
-        <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">Save</button>
+      <div class="flex gap-3 pt-4">
+        <button type="button" onclick="document.getElementById('task-modal').classList.add('hidden')" class="flex-1 py-4 rounded-2xl font-bold text-textmuted bg-oatmeal hover:bg-black/5 transition">Cancel</button>
+        <button type="submit" class="flex-1 py-4 rounded-2xl font-bold text-white bg-ochre shadow-soft hover:opacity-90 transition">Save</button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="system-form-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
-  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
-    <h2 id="sys-modal-title" class="text-xl font-bold text-[#3E342B] mb-5">Add Home System</h2>
-    <form id="system-form" class="space-y-4">
+<div id="system-form-modal" class="fixed inset-0 bg-textmain/30 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+  <div class="bg-white rounded-[32px] p-8 w-full max-w-sm shadow-soft relative max-h-[90vh] overflow-y-auto no-scrollbar">
+    <h2 id="sys-modal-title" class="text-2xl font-serif font-bold text-textmain mb-6">Add Home System</h2>
+    <form id="system-form" class="space-y-5">
       <input type="hidden" id="sys-id" value="">
       <input type="hidden" id="sys-existing-image" value="">
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Name</label><input type="text" id="sys-name" class="w-full bg-[#F4F1EA] text-[#3E342B] rounded-2xl p-3 outline-none" required></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Description</label><textarea id="sys-desc" rows="2" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none" required></textarea></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Doc Link</label><input type="url" id="sys-link" class="w-full bg-[#F4F1EA] rounded-2xl p-3 outline-none"></div>
-      <div><label class="block text-xs font-bold text-[#9A8C7E] uppercase mb-1">Header Image</label><input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-[#9A8C7E] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-[#E8EDDF] file:text-[#5A4C40]"></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Name</label><input type="text" id="sys-name" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Description</label><textarea id="sys-desc" rows="2" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></textarea></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Doc Link</label><input type="url" id="sys-link" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30"></div>
+      <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Header Image</label><input type="file" id="sys-image" accept="image/*" class="w-full text-sm text-textmuted file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:bg-ochre/10 file:text-ochre file:font-bold cursor-pointer"></div>
       
-      <div class="flex gap-3 pt-2">
-        <button type="button" id="btn-delete-sys" class="hidden w-14 rounded-2xl font-bold text-red-500 bg-[#F4F1EA] hover:bg-red-50 flex items-center justify-center text-xl transition" title="Delete System">🗑️</button>
-        <button type="button" onclick="document.getElementById('system-form-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Cancel</button>
-        <button type="submit" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">Save</button>
+      <div class="flex gap-3 pt-4">
+        <button type="button" id="btn-delete-sys" class="hidden w-14 rounded-2xl font-bold text-terracotta bg-terracotta/10 hover:bg-terracotta/20 flex items-center justify-center text-xl transition shadow-sm" title="Delete System">🗑️</button>
+        <button type="button" onclick="document.getElementById('system-form-modal').classList.add('hidden')" class="flex-1 py-4 rounded-2xl font-bold text-textmuted bg-oatmeal hover:bg-black/5 transition">Cancel</button>
+        <button type="submit" class="flex-1 py-4 rounded-2xl font-bold text-white bg-ochre shadow-soft hover:opacity-90 transition">Save</button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="system-detail-modal" class="fixed inset-0 bg-[#F4F1EA] hidden z-[110] overflow-y-auto no-scrollbar pb-24">
+<div id="system-detail-modal" class="fixed inset-0 bg-oatmeal hidden z-[110] overflow-y-auto no-scrollbar pb-24">
   <div class="absolute top-6 right-6 flex gap-3 z-10">
-    <button id="btn-edit-sys-detail" class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#5A4C40] shadow-sm font-bold">✏️</button>
-    <button onclick="document.getElementById('system-detail-modal').classList.add('hidden')" class="w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#3E342B] shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+    <button id="btn-edit-sys-detail" class="w-12 h-12 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-ochre shadow-soft font-bold transition hover:bg-white">✏️</button>
+    <button onclick="document.getElementById('system-detail-modal').classList.add('hidden')" class="w-12 h-12 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-textmain shadow-soft transition hover:bg-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
   </div>
-  <div class="h-[50vh] w-full relative"><img id="detail-img" src="" class="w-full h-full object-cover" /><div class="absolute inset-0 bg-gradient-to-t from-[#F4F1EA] via-transparent to-transparent"></div></div>
-  <div class="relative -mt-16 mx-4 bg-white rounded-[32px] p-6 shadow-sm">
-    <h2 id="detail-name" class="text-3xl font-bold text-[#3E342B] mb-2"></h2>
-    <p id="detail-desc" class="text-sm text-[#9A8C7E] leading-relaxed mb-6"></p>
-    <a id="detail-link" href="#" target="_blank" class="inline-flex items-center gap-2 text-xs font-bold bg-[#E8EDDF] text-[#5A4C40] px-4 py-2 rounded-full uppercase tracking-wide mb-6 hidden"><span>📄</span> Manual</a>
-    <button onclick="document.getElementById('btn-calendar').click(); document.getElementById('system-detail-modal').classList.add('hidden');" class="w-full py-4 rounded-[20px] font-bold text-lg text-white bg-[#EE7A48] shadow-xl flex justify-center items-center gap-2"><span>▶</span> View Calendar</button>
+  <div class="h-[50vh] w-full relative"><img id="detail-img" src="" class="w-full h-full object-cover" /><div class="absolute inset-0 bg-gradient-to-t from-oatmeal via-transparent to-transparent"></div></div>
+  <div class="relative -mt-16 mx-4 bg-white rounded-[32px] p-8 shadow-soft">
+    <h2 id="detail-name" class="text-4xl font-serif font-bold text-textmain mb-3"></h2>
+    <p id="detail-desc" class="text-base text-textmuted leading-relaxed mb-6"></p>
+    <a id="detail-link" href="#" target="_blank" class="inline-flex items-center gap-2 text-xs font-bold bg-ochre/10 text-ochre px-5 py-2.5 rounded-full uppercase tracking-wide mb-8 hidden hover:bg-ochre/20 transition"><span>📄</span> Manual</a>
+    <button onclick="document.getElementById('btn-calendar').click(); document.getElementById('system-detail-modal').classList.add('hidden');" class="w-full py-5 rounded-[20px] font-bold text-lg text-white bg-ochre shadow-soft flex justify-center items-center gap-2 hover:opacity-90 transition"><span>▶</span> View Calendar</button>
   </div>
 </div>
 
-<div id="day-view-modal" class="fixed inset-0 bg-[#3E342B]/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
-  <div class="bg-white rounded-[32px] p-6 w-full max-w-sm shadow-2xl"><h2 id="day-view-title" class="text-xl font-bold text-[#3E342B] mb-5">Tasks</h2>
-    <div id="day-view-tasks" class="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar"></div>
-    <div class="flex gap-3 pt-2"><button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden')" class="flex-1 py-3.5 rounded-2xl font-bold text-[#9A8C7E] bg-[#F4F1EA]">Close</button><button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden'); document.getElementById('task-id').value=''; document.getElementById('task-form').reset(); document.getElementById('task-modal').classList.remove('hidden');" class="flex-1 py-3.5 rounded-2xl font-bold text-white bg-[#5A4C40] shadow-lg">+ Add Task</button></div>
+<div id="day-view-modal" class="fixed inset-0 bg-textmain/30 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+  <div class="bg-white rounded-[32px] p-8 w-full max-w-sm shadow-soft"><h2 id="day-view-title" class="text-2xl font-serif font-bold text-textmain mb-6">Tasks</h2>
+    <div id="day-view-tasks" class="space-y-4 mb-8 max-h-64 overflow-y-auto no-scrollbar"></div>
+    <div class="flex gap-3 pt-2">
+      <button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden')" class="flex-1 py-4 rounded-2xl font-bold text-textmuted bg-oatmeal hover:bg-black/5 transition">Close</button>
+      <button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden'); document.getElementById('task-id').value=''; document.getElementById('task-form').reset(); document.getElementById('task-modal').classList.remove('hidden');" class="flex-1 py-4 rounded-2xl font-bold text-white bg-ochre shadow-soft hover:opacity-90 transition">+ Add Task</button>
+    </div>
   </div>
 </div>
 
