@@ -40,29 +40,37 @@
 
 <body class="min-h-screen bg-oatmeal text-textmain font-sans pb-32 m-0 no-scrollbar relative z-0">
 
-  <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-    <svg class="w-full h-full object-cover" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <div class="absolute top-0 left-0 w-full h-[150vh] z-[-1] pointer-events-none overflow-hidden">
+    <svg class="w-full h-full object-cover" viewBox="0 0 1440 1200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       
-      <path d="M-100 900 L-100 400 Q 250 200 600 500 T 1500 300 L 1500 900 Z" fill="#84A59D" opacity="0.06"/>
-      <path d="M-100 900 L-100 550 Q 300 400 700 650 T 1500 450 L 1500 900 Z" fill="#84A59D" opacity="0.08"/>
+      <path d="M-100 900 L-100 400 Q 250 200 600 500 T 1500 300 L 1500 1200 Z" fill="#84A59D" opacity="0.06"/>
+      <path d="M-100 900 L-100 550 Q 300 400 700 650 T 1500 450 L 1500 1200 Z" fill="#84A59D" opacity="0.08"/>
       
       <polygon points="100,600 150,400 200,600" fill="#84A59D" opacity="0.12"/>
       <polygon points="40,650 100,480 160,650" fill="#84A59D" opacity="0.08"/>
       <polygon points="160,680 230,460 300,680" fill="#84A59D" opacity="0.10"/>
       <polygon points="-20,750 60,500 140,750" fill="#84A59D" opacity="0.15"/>
       
+      <polygon points="350,700 400,500 450,700" fill="#84A59D" opacity="0.09"/>
+      <polygon points="420,750 480,520 540,750" fill="#84A59D" opacity="0.11"/>
+      <polygon points="480,800 550,550 620,800" fill="#84A59D" opacity="0.14"/>
+
+      <polygon points="800,850 860,600 920,850" fill="#84A59D" opacity="0.10"/>
+      <polygon points="880,900 950,650 1020,900" fill="#84A59D" opacity="0.13"/>
+      <polygon points="750,920 810,680 870,920" fill="#84A59D" opacity="0.08"/>
+
       <polygon points="1200,550 1260,350 1320,550" fill="#84A59D" opacity="0.08"/>
       <polygon points="1280,600 1350,420 1420,600" fill="#84A59D" opacity="0.12"/>
       <polygon points="1120,620 1180,450 1240,620" fill="#84A59D" opacity="0.10"/>
       <polygon points="1380,700 1450,480 1520,700" fill="#84A59D" opacity="0.15"/>
 
-      <path d="M-100 700 C 300 650, 600 950, 1550 550" fill="none" stroke="#7D98A1" stroke-width="140" stroke-linecap="round" opacity="0.08"/>
-      <path d="M-100 710 C 300 660, 600 960, 1550 560" fill="none" stroke="#7D98A1" stroke-width="40" stroke-linecap="round" opacity="0.15"/>
-      <path d="M-100 680 C 300 630, 600 930, 1550 530" fill="none" stroke="#7D98A1" stroke-width="15" stroke-linecap="round" opacity="0.2"/>
+      <path d="M-100 700 C 300 650, 600 950, 1550 750" fill="none" stroke="#7D98A1" stroke-width="140" stroke-linecap="round" opacity="0.08"/>
+      <path d="M-100 710 C 300 660, 600 960, 1550 760" fill="none" stroke="#7D98A1" stroke-width="40" stroke-linecap="round" opacity="0.15"/>
+      <path d="M-100 680 C 300 630, 600 930, 1550 730" fill="none" stroke="#7D98A1" stroke-width="15" stroke-linecap="round" opacity="0.2"/>
     </svg>
   </div>
   
-  <header class="pt-14 pb-4 px-6 flex justify-between items-center">
+  <header class="pt-14 pb-4 px-6 flex justify-between items-center relative z-10">
     <div>
       <p id="home-subtitle" class="text-xs font-bold tracking-widest text-textmuted uppercase mb-1">Welcome Home</p>
       <h1 id="home-title" class="text-3xl font-serif font-bold tracking-wide text-textmain">7015 Phillips Rd</h1>
@@ -72,7 +80,7 @@
     </div>
   </header>
 
-<main class="px-6 space-y-8 pt-2">
+<main class="px-6 space-y-8 pt-2 relative z-10">
   
   <div id="view-home" class="block space-y-8">
     <div class="rounded-[32px] overflow-hidden relative h-64 shadow-soft bg-white p-2">
