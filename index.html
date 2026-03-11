@@ -237,7 +237,8 @@
     <div id="day-view-tasks" class="space-y-4 mb-8 max-h-64 overflow-y-auto no-scrollbar"></div>
     <div class="flex gap-3 pt-2">
       <button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden')" class="flex-1 py-4 rounded-2xl font-bold text-textmuted bg-oatmeal hover:bg-black/5 transition">Close</button>
-      <button type="button" onclick="document.getElementById('day-view-modal').classList.add('hidden'); document.getElementById('task-id').value=''; document.getElementById('task-form').reset(); document.getElementById('task-modal').classList.remove('hidden');" class="flex-1 py-4 rounded-2xl font-bold text-white bg-ochre shadow-soft hover:opacity-90 transition">+ Add Task</button>
+      
+      <button type="button" id="btn-day-add-task" class="flex-1 py-4 rounded-2xl font-bold text-white bg-ochre shadow-soft hover:opacity-90 transition">+ Add Task</button>
     </div>
   </div>
 </div>
