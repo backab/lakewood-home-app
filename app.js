@@ -139,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     nextThree.forEach(task => {
-      // PRETTY UPDATE: Border is now dustyblue!
       const actionUI = task.is_virtual ? '' : `
         <div class="border-t border-black/5 mt-3 pt-4 flex justify-between items-center">
           <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-textmuted bg-oatmeal rounded-lg px-3 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-ochre/30 transition">
@@ -309,6 +308,21 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-form').reset();
     document.getElementById('task-modal-title').textContent = "Add New Task";
     document.getElementById('task-modal').classList.remove('hidden');
+  });
+
+  // NEW: Add Task directly from the System Detail view!
+  attachListener('btn-add-system-task', 'click', () => {
+    document.getElementById('system-detail-modal').classList.add('hidden'); // Hide the system detail
+    document.getElementById('task-id').value = '';
+    document.getElementById('task-form').reset();
+    
+    // Magically pre-select the system dropdown
+    if (currentlyViewedSystem) {
+      document.getElementById('task-system').value = currentlyViewedSystem.name;
+    }
+    
+    document.getElementById('task-modal-title').textContent = "Add New Task";
+    document.getElementById('task-modal').classList.remove('hidden'); // Pop open the task form
   });
 
   attachListener('btn-add-system', 'click', () => {
