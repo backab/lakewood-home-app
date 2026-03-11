@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- TAB SWITCHING & GEAR ICON --- //
   const tabs = ['home', 'systems', 'tasks', 'calendar', 'profile'];
   window.switchTab = function(activeTab) {
+    // Scroll cleanly to the top when navigating!
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     tabs.forEach(tab => {
       document.getElementById(`view-${tab}`).classList.add('hidden');
       document.getElementById(`btn-${tab}`).classList.remove('text-ochre');
@@ -28,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let myTasks = []; 
   let mySystems = [];
   let myTodos = [];
+  
+  // NEW: Memory variable to remember exactly which day you clicked on!
+  let currentSelectedDate = ""; 
 
   async function loadDataFromCloud() {
     try {
@@ -271,6 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       cell.addEventListener('click', () => {
+        // Log the clicked date to memory so the "Add Task" button can use it!
+        currentSelectedDate = dateStr; 
+        
         document.getElementById('day-view-title').textContent = `${dateStr}`;
         const container = document.getElementById('day-view-tasks');
         
@@ -291,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             </div>`}
           </div>`).join('') : `<p class="text-center text-textmuted py-6 italic">Nothing scheduled.</p>`;
-        document.getElementById('task-date').value = dateStr;
+        
         document.getElementById('day-view-modal').classList.remove('hidden');
       });
       calendarGrid.appendChild(cell);
@@ -321,18 +330,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.remove('hidden');
   });
 
-  // NEW: Add Task from the Day View Modal (Preserves the clicked date!)
+  // NEW: Grab the memory variable and plug it in after the reset!
   attachListener('btn-day-add-task', 'click', () => {
     document.getElementById('day-view-modal').classList.add('hidden');
-    
-    // Save the date we clicked on before resetting!
-    const preservedDate = document.getElementById('task-date').value; 
-    
     document.getElementById('task-form').reset(); 
     document.getElementById('task-id').value = '';
     
-    // Put the date back!
-    document.getElementById('task-date').value = preservedDate; 
+    // Inject the saved date we logged earlier
+    document.getElementById('task-date').value = currentSelectedDate; 
     
     document.getElementById('task-modal-title').textContent = "Add New Task";
     document.getElementById('task-modal').classList.remove('hidden');
