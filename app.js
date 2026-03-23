@@ -115,7 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     currentlyViewedSystem = sys;
     
-    // Safety check: if URL is literally 'undefined' or missing, show blank
     const badUrls = ['null', 'undefined', '', null, undefined];
     const safeImgUrl = badUrls.includes(sys.image_url) ? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' : sys.image_url;
     document.getElementById('detail-img').src = safeImgUrl;
@@ -409,7 +408,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // REVERTED: Straight file upload for Settings
+  // 🚨 THE FIX: Explicitly target the first file (index 0)
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
@@ -417,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('subtitle', document.getElementById('set-subtitle').value);
     
     const fileInput = document.getElementById('home-img-upload'); 
-    if(fileInput.files) {
+    if(fileInput.files && fileInput.files.length > 0) {
       formData.append('image', fileInput.files);
     }
     
@@ -442,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
-  // REVERTED: Straight file upload for Systems
+  // 🚨 THE FIX: Explicitly target the first file (index 0)
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -457,9 +456,9 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
     
-    const file = document.getElementById('sys-image').files; 
-    if (file) {
-      formData.append('image', file);
+    const fileInput = document.getElementById('sys-image'); 
+    if (fileInput.files && fileInput.files.length > 0) {
+      formData.append('image', fileInput.files);
     }
     
     try {
