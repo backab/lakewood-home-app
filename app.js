@@ -1,9 +1,44 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  // --- UTILITY ---
+  // --- UTILITY & IMAGE COMPRESSION ---
   function attachListener(id, eventType, callback) {
     const el = document.getElementById(id);
     if (el) el.addEventListener(eventType, callback);
+  }
+
+  // 🚨 THE SHRINK RAY: Compresses iPhone photos before uploading
+  async function compressImage(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 1200; // Limits the longest edge to 1200px
+
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], "compressed_upload.jpg", { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.8); // 80% quality JPEG
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   // --- TAB SWITCHING ---
@@ -115,7 +150,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     currentlyViewedSystem = sys;
     
-    const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    // Safety check: if URL is literally 'undefined' or missing, show blank
+    const badUrls = ['null', 'undefined', '', null, undefined];
+    const safeImgUrl = badUrls.includes(sys.image_url) ? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' : sys.image_url;
     document.getElementById('detail-img').src = safeImgUrl;
     
     document.getElementById('detail-name').textContent = sys.name;
@@ -246,11 +283,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById(containerId);
     if(!container) return;
     container.innerHTML = '';
+    const badUrls = ['null', 'undefined', '', null, undefined];
+    
     mySystems.forEach(sys => {
       const card = document.createElement('div');
       card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-soft border border-black/5 cursor-pointer";
       
-      const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+      const safeImgUrl = badUrls.includes(sys.image_url) ? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' : sys.image_url;
       
       card.innerHTML = `<div class="h-48 rounded-[24px] overflow-hidden relative mb-4"><img src="${safeImgUrl}" class="w-full h-full object-cover bg-black/5" /><div class="absolute inset-0 bg-gradient-to-t from-textmain/60 to-transparent"></div></div><div class="px-4 pb-4"><h3 class="text-xl font-serif font-bold text-textmain truncate">${sys.name}</h3><p class="text-sm text-textmuted mt-1 font-medium">${myTasks.filter(t => t.system_name === sys.name).length} Scheduled Tasks</p></div>`;
       card.addEventListener('click', () => openSystemDetailByName(sys.name));
@@ -367,7 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('btn-add-system', 'click', () => { 
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
-
     document.getElementById('sys-id').value = ""; 
     document.getElementById('sys-existing-image').value = ""; 
     document.getElementById('sys-modal-title').textContent = "Add Home System"; 
@@ -387,13 +425,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('btn-edit-sys-detail', 'click', () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
-    
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
-
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
-    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url && currentlyViewedSystem.image_url !== 'null' ? currentlyViewedSystem.image_url : '';
+    
+    const badUrls = ['null', 'undefined', '', null, undefined];
+    document.getElementById('sys-existing-image').value = badUrls.includes(currentlyViewedSystem.image_url) ? '' : currentlyViewedSystem.image_url;
     
     document.getElementById('sys-name').value = currentlyViewedSystem.name;
     document.getElementById('sys-desc').value = currentlyViewedSystem.description;
@@ -408,13 +446,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
-    const formData = new FormData(); formData.append('title', document.getElementById('set-title').value); formData.append('subtitle', document.getElementById('set-subtitle').value);
-    const fileInput = document.getElementById('home-img-upload'); if(fileInput.files) formData.append('image', fileInput.files);
-    await fetch('/api/settings', { method: 'POST', body: formData }); 
+    const formData = new FormData(); 
+    formData.append('title', document.getElementById('set-title').value); 
+    formData.append('subtitle', document.getElementById('set-subtitle').value);
+    
+    const fileInput = document.getElementById('home-img-upload'); 
+    if(fileInput.files) {
+      btn.textContent = "Compressing Image...";
+      const compressed = await compressImage(fileInput.files);
+      formData.append('image', compressed);
+    }
+    
+    try {
+      btn.textContent = "Sending to Cloudflare...";
+      const res = await fetch('/api/settings', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(await res.text());
+    } catch (err) {
+      alert("Settings Upload Error: " + err.message);
+    }
 
     document.getElementById('home-img-upload').value = ''; 
-
-    btn.textContent = "Sync to Cloud"; loadDataFromCloud();
+    btn.textContent = "Sync to Cloud"; 
+    loadDataFromCloud();
   });
 
   attachListener('task-form', 'submit', async (e) => {
@@ -427,7 +480,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   attachListener('system-form', 'submit', async (e) => {
-    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.textContent = "Saving...";
+    e.preventDefault(); 
+    const btn = e.target.querySelector('button[type="submit"]'); 
+    btn.textContent = "Processing...";
+    
     const formData = new FormData();
     formData.append('id', document.getElementById('sys-id').value);
     formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
@@ -436,13 +492,27 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_name', document.getElementById('sys-vendor-name').value); 
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
-    const file = document.getElementById('sys-image').files; if (file) formData.append('image', file);
-    await fetch('/api/systems', { method: 'POST', body: formData });
+    
+    const file = document.getElementById('sys-image').files; 
+    if (file) {
+      btn.textContent = "Compressing Image...";
+      const compressed = await compressImage(file);
+      formData.append('image', compressed);
+    }
+    
+    try {
+      btn.textContent = "Sending to Cloudflare...";
+      const res = await fetch('/api/systems', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(await res.text()); // This tells us EXACTLY why it failed!
+    } catch (err) {
+      alert("System Upload Error: " + err.message);
+    }
     
     document.getElementById('system-form').reset();
     document.getElementById('sys-image').value = '';
-
-    document.getElementById('system-form-modal').classList.add('hidden'); btn.textContent = "Save"; loadDataFromCloud();
+    document.getElementById('system-form-modal').classList.add('hidden'); 
+    btn.textContent = "Save"; 
+    loadDataFromCloud();
   });
 
 });
