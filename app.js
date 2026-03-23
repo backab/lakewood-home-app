@@ -31,6 +31,23 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentSelectedDate = ""; 
   let lastCompletedTodo = null; 
 
+  // 🚨 THE MEMORY VAULT: Holds files securely to defeat iOS PWA memory wipes
+  let pendingSystemImage = null;
+  let pendingSettingsImage = null;
+
+  // Immediate Capture: Grab the file the exact millisecond it's selected
+  attachListener('sys-image', 'change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      pendingSystemImage = e.target.files;
+    }
+  });
+
+  attachListener('home-img-upload', 'change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      pendingSettingsImage = e.target.files;
+    }
+  });
+
   async function loadDataFromCloud() {
     try {
       const [tasksRes, sysRes, settingsRes, todosRes, logsRes] = await Promise.all([
@@ -370,6 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('btn-add-system', 'click', () => { 
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
+    pendingSystemImage = null; // Clear vault
     document.getElementById('sys-id').value = ""; 
     document.getElementById('sys-existing-image').value = ""; 
     document.getElementById('sys-modal-title').textContent = "Add Home System"; 
@@ -391,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
+    pendingSystemImage = null; // Clear vault
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
     
@@ -408,16 +427,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // 🚨 THE FIX: Explicitly target the first file (index 0)
+  // Use the Vault for Settings Upload
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
     formData.append('title', document.getElementById('set-title').value); 
     formData.append('subtitle', document.getElementById('set-subtitle').value);
     
-    const fileInput = document.getElementById('home-img-upload'); 
-    if(fileInput.files && fileInput.files.length > 0) {
-      formData.append('image', fileInput.files);
+    if (pendingSettingsImage) {
+      formData.append('image', pendingSettingsImage);
     }
     
     try {
@@ -428,6 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById('home-img-upload').value = ''; 
+    pendingSettingsImage = null; // Clear vault
     btn.textContent = "Sync to Cloud"; 
     loadDataFromCloud();
   });
@@ -441,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
-  // 🚨 THE FIX: Explicitly target the first file (index 0)
+  // Use the Vault for Systems Upload
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -456,9 +475,8 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
     
-    const fileInput = document.getElementById('sys-image'); 
-    if (fileInput.files && fileInput.files.length > 0) {
-      formData.append('image', fileInput.files);
+    if (pendingSystemImage) {
+      formData.append('image', pendingSystemImage);
     }
     
     try {
@@ -470,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.getElementById('system-form').reset();
     document.getElementById('sys-image').value = '';
+    pendingSystemImage = null; // Clear vault
     document.getElementById('system-form-modal').classList.add('hidden'); 
     btn.textContent = "Save"; 
     loadDataFromCloud();
