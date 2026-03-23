@@ -61,13 +61,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadDataFromCloud();
 
-  // --- RECURRENCE MATH ENGINE (Now with Bi-Weekly & Quarterly!) --- //
+  // --- RECURRENCE MATH ENGINE (FIXED DATE FORMATTING) --- //
   function getExpandedTasks() {
     let expanded = [];
     myTasks.forEach(task => {
+      // Strip off any weird timestamp/timezone artifacts the DB might have attached
+      let cleanDate = task.task_date ? task.task_date.split('T') : '';
+      task.task_date = cleanDate; 
+      
       expanded.push(task); 
-      if (task.recurrence && task.recurrence !== 'none') {
-        let currDate = new Date(task.task_date);
+      
+      if (task.recurrence && task.recurrence !== 'none' && cleanDate) {
+        // Bulletproof timezone math
+        let [y, m, d] = cleanDate.split('-');
+        let currDate = new Date(y, m - 1, d); 
+        
         for (let i = 0; i < 36; i++) {
           if (task.recurrence === 'weekly') currDate.setDate(currDate.getDate() + 7);
           else if (task.recurrence === 'bi-weekly') currDate.setDate(currDate.getDate() + 14);
@@ -77,11 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
           else if (task.recurrence === 'annual') currDate.setFullYear(currDate.getFullYear() + 1);
           
           if (currDate.getFullYear() > new Date().getFullYear() + 3) break;
-          expanded.push({ ...task, task_date: currDate.toISOString().split('T'), is_virtual: true });
+          
+          // Reformat cleanly as YYYY-MM-DD
+          let nextDateStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+          expanded.push({ ...task, task_date: nextDateStr, is_virtual: true });
         }
       }
     });
-    return expanded; // <-- The bracket that probably got deleted!
+    return expanded; 
   }
 
   // --- GLOBAL SYSTEM NAVIGATION ---
@@ -92,7 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('day-view-modal').classList.add('hidden'); 
     
     currentlyViewedSystem = sys;
-    document.getElementById('detail-img').src = sys.image_url;
+    
+    // FIX: Safely load image, use a transparent pixel if none exists so it doesn't show a broken icon
+    const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    document.getElementById('detail-img').src = safeImgUrl;
+    
     document.getElementById('detail-name').textContent = sys.name;
     document.getElementById('detail-desc').textContent = sys.description;
     
@@ -224,7 +239,11 @@ document.addEventListener("DOMContentLoaded", () => {
     mySystems.forEach(sys => {
       const card = document.createElement('div');
       card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-soft border border-black/5 cursor-pointer";
-      card.innerHTML = `<div class="h-48 rounded-[24px] overflow-hidden relative mb-4"><img src="${sys.image_url}" class="w-full h-full object-cover bg-black/5" /><div class="absolute inset-0 bg-gradient-to-t from-textmain/60 to-transparent"></div></div><div class="px-4 pb-4"><h3 class="text-xl font-serif font-bold text-textmain truncate">${sys.name}</h3><p class="text-sm text-textmuted mt-1 font-medium">${myTasks.filter(t => t.system_name === sys.name).length} Scheduled Tasks</p></div>`;
+      
+      // FIX: Safely load image for the system cards
+      const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+      
+      card.innerHTML = `<div class="h-48 rounded-[24px] overflow-hidden relative mb-4"><img src="${safeImgUrl}" class="w-full h-full object-cover bg-black/5" /><div class="absolute inset-0 bg-gradient-to-t from-textmain/60 to-transparent"></div></div><div class="px-4 pb-4"><h3 class="text-xl font-serif font-bold text-textmain truncate">${sys.name}</h3><p class="text-sm text-textmuted mt-1 font-medium">${myTasks.filter(t => t.system_name === sys.name).length} Scheduled Tasks</p></div>`;
       card.addEventListener('click', () => openSystemDetailByName(sys.name));
       container.appendChild(card);
     });
@@ -351,7 +370,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
-    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
+    
+    // FIX: Ensure we don't accidentally save the string "null" if no image exists
+    document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url && currentlyViewedSystem.image_url !== 'null' ? currentlyViewedSystem.image_url : '';
+    
     document.getElementById('sys-name').value = currentlyViewedSystem.name;
     document.getElementById('sys-desc').value = currentlyViewedSystem.description;
     document.getElementById('sys-vendor-name').value = currentlyViewedSystem.vendor_name || '';
