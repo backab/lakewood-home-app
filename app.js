@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   
+  // --- UTILITY ---
   function attachListener(id, eventType, callback) {
     const el = document.getElementById(id);
     if (el) el.addEventListener(eventType, callback);
   }
 
+  // --- TAB SWITCHING ---
   const tabs = ['home', 'systems', 'tasks', 'calendar', 'profile'];
   window.switchTab = function(activeTab) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -21,10 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
   tabs.forEach(tab => attachListener(`btn-${tab}`, 'click', () => switchTab(tab)));
   attachListener('btn-header-settings', 'click', () => switchTab('profile'));
 
+  // --- DATA STORAGE & SYNC ---
   let myTasks = []; 
   let mySystems = [];
   let myTodos = [];
-  let myLogs = []; // NEW: Array for history
+  let myLogs = []; 
   let currentSelectedDate = ""; 
   let lastCompletedTodo = null; 
 
@@ -36,7 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tasksRes.ok) myTasks = await tasksRes.json();
       if (sysRes.ok) mySystems = await sysRes.json();
       if (todosRes.ok) myTodos = await todosRes.json();
-      if (logsRes.ok) myLogs = await logsRes.json(); // Load the history!
+      if (logsRes.ok) myLogs = await logsRes.json(); 
+      
       if (settingsRes.ok) {
         const settings = await settingsRes.json();
         if(settings.home_image) document.getElementById('main-home-image').src = settings.home_image;
@@ -52,12 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
       populateSystemDropdown();
       renderHomeTasks();
       renderTodoList();
-      renderLogbook(); // Draw the history list
+      renderLogbook(); 
     } catch (error) { console.error("Cloud sync failed:", error); }
   }
   loadDataFromCloud();
 
-  // --- RECURRENCE MATH ENGINE --- //
+  // --- RECURRENCE MATH ENGINE (Now with Bi-Weekly & Quarterly!) --- //
   function getExpandedTasks() {
     let expanded = [];
     myTasks.forEach(task => {
@@ -65,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (task.recurrence && task.recurrence !== 'none') {
         let currDate = new Date(task.task_date);
         for (let i = 0; i < 36; i++) {
-          // New cadence logic!
           if (task.recurrence === 'weekly') currDate.setDate(currDate.getDate() + 7);
           else if (task.recurrence === 'bi-weekly') currDate.setDate(currDate.getDate() + 14);
           else if (task.recurrence === 'monthly') currDate.setMonth(currDate.getMonth() + 1);
@@ -78,24 +81,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-    return expanded;
-  }
-    return expanded;
+    return expanded; // <-- The bracket that probably got deleted!
   }
 
-  // --- NEW: Global Link to System Pages --- //
+  // --- GLOBAL SYSTEM NAVIGATION ---
   let currentlyViewedSystem = null; 
   window.openSystemDetailByName = function(sysName) {
     const sys = mySystems.find(s => s.name === sysName);
     if (!sys) return;
-    document.getElementById('day-view-modal').classList.add('hidden'); // Close calendar day view if open
+    document.getElementById('day-view-modal').classList.add('hidden'); 
     
     currentlyViewedSystem = sys;
     document.getElementById('detail-img').src = sys.image_url;
     document.getElementById('detail-name').textContent = sys.name;
     document.getElementById('detail-desc').textContent = sys.description;
     
-    // Vendor Logic
     if (sys.vendor_name) {
       document.getElementById('detail-vendor-container').classList.remove('hidden');
       document.getElementById('detail-vendor-name').textContent = sys.vendor_name;
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-detail-modal').classList.remove('hidden');
   }
 
-  // --- NEW: Open Completion Modal --- //
+  // --- TASK COMPLETION ---
   window.openCompleteModal = function(id, type, title, systemName) {
     document.getElementById('complete-task-id').value = id;
     document.getElementById('complete-task-type').value = type;
@@ -121,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-complete-modal').classList.remove('hidden');
   }
 
-  // Handle actually completing the task
   attachListener('complete-form', 'submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
@@ -132,15 +131,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = document.getElementById('complete-task-title').textContent;
     const sysName = document.getElementById('complete-system-name').value;
     const notes = document.getElementById('complete-notes').value;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T');
 
-    // 1. Save to History Logbook
     await fetch('/api/logs', { 
       method: 'POST', headers: {'Content-Type': 'application/json'}, 
       body: JSON.stringify({ system_name: sysName, task_title: title, completed_date: today, notes: notes }) 
     });
 
-    // 2. Clear out the original task
     if (type === 'manual') {
       lastCompletedTodo = { id, type };
       document.getElementById('undo-container').classList.remove('hidden');
@@ -166,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!task) return;
     let d = new Date(task.task_date);
     d.setDate(d.getDate() + parseInt(daysToAdd));
-    await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'push_back', id: id, new_date: d.toISOString().split('T')[0] }) });
+    await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'push_back', id: id, new_date: d.toISOString().split('T') }) });
     document.getElementById('day-view-modal').classList.add('hidden'); 
     loadDataFromCloud(); 
   }
@@ -192,17 +189,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.remove('hidden');
   }
 
+  // --- UI RENDERING ---
   function renderHomeTasks() {
     const container = document.getElementById('home-upcoming-tasks');
     if(!container) return;
     container.innerHTML = '';
-    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= new Date().toISOString().split('T')[0] && !t.acknowledged);
+    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= new Date().toISOString().split('T') && !t.acknowledged);
     allUpcoming.sort((a, b) => new Date(a.task_date) - new Date(b.task_date));
     const nextThree = allUpcoming.slice(0, 3);
+    
     if (nextThree.length === 0) { container.innerHTML = `<p class="text-sm text-textmuted italic">All caught up!</p>`; return; }
 
     nextThree.forEach(task => {
-      // NEW: System name is clickable!
       const actionUI = task.is_virtual ? '' : `
         <div class="border-t border-black/5 mt-3 pt-4 flex justify-between items-center">
           <select onchange="pushBackTask(${task.id}, this.value); this.value='';" class="text-xs font-bold text-textmuted bg-oatmeal rounded-lg px-3 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-ochre/30 transition"><option value="">Push back...</option><option value="1">1 Day</option><option value="3">3 Days</option><option value="5">5 Days</option><option value="7">1 Week</option></select>
@@ -262,7 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if(count === 0) list.innerHTML = `<p class="text-center text-sm text-textmuted py-8">No open to-dos. Great job!</p>`;
   }
 
-  // --- NEW: Render the History Logbook --- //
   function renderLogbook() {
     const logbook = document.getElementById('logbook-list');
     if(!logbook) return;
@@ -331,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- EVENT LISTENERS ---
   attachListener('prev-month', 'click', () => { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} renderCalendar(currentMonth, currentYear); });
   attachListener('next-month', 'click', () => { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} renderCalendar(currentMonth, currentYear); });
 
@@ -356,11 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url;
     document.getElementById('sys-name').value = currentlyViewedSystem.name;
     document.getElementById('sys-desc').value = currentlyViewedSystem.description;
-    
-    // NEW: Load vendor data into edit form
     document.getElementById('sys-vendor-name').value = currentlyViewedSystem.vendor_name || '';
     document.getElementById('sys-vendor-phone').value = currentlyViewedSystem.vendor_phone || '';
-
     document.getElementById('sys-link').value = currentlyViewedSystem.doc_link || '';
     document.getElementById('btn-delete-sys').classList.remove('hidden');
     document.getElementById('system-form-modal').classList.remove('hidden');
@@ -371,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); formData.append('title', document.getElementById('set-title').value); formData.append('subtitle', document.getElementById('set-subtitle').value);
-    const fileInput = document.getElementById('home-img-upload'); if(fileInput.files[0]) formData.append('image', fileInput.files[0]);
+    const fileInput = document.getElementById('home-img-upload'); if(fileInput.files) formData.append('image', fileInput.files);
     await fetch('/api/settings', { method: 'POST', body: formData }); btn.textContent = "Sync to Cloud"; loadDataFromCloud();
   });
 
@@ -391,10 +386,10 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
     formData.append('name', document.getElementById('sys-name').value);
     formData.append('description', document.getElementById('sys-desc').value);
-    formData.append('vendor_name', document.getElementById('sys-vendor-name').value); // NEW
-    formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); // NEW
+    formData.append('vendor_name', document.getElementById('sys-vendor-name').value); 
+    formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
-    const file = document.getElementById('sys-image').files[0]; if (file) formData.append('image', file);
+    const file = document.getElementById('sys-image').files; if (file) formData.append('image', file);
     await fetch('/api/systems', { method: 'POST', body: formData });
     document.getElementById('system-form-modal').classList.add('hidden'); btn.textContent = "Save"; loadDataFromCloud();
   });
