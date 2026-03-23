@@ -19,9 +19,13 @@ export async function onRequestPost(context) {
     const imageFile = formData.get('image');
     let imageUrl = formData.get('existing_image_url') || "";
 
-    if (imageFile && imageFile.name) {
+    // 🚨 THE FIX: Check if we have a file, and convert it to raw data (ArrayBuffer) instead of a fragile stream
+    if (imageFile && imageFile.name && imageFile.size > 0) {
       const fileName = Date.now() + "-" + imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '');
-      await context.env.BUCKET.put(fileName, imageFile.stream(), {
+      
+      const fileData = await imageFile.arrayBuffer(); // This forces Cloudflare to read the whole file!
+      
+      await context.env.BUCKET.put(fileName, fileData, {
         httpMetadata: { contentType: imageFile.type }
       });
       imageUrl = `/api/images/${fileName}`;
@@ -38,7 +42,7 @@ export async function onRequestPost(context) {
     }
     return Response.json({ success: true });
   } catch (error) {
-    return new Response("Error saving system", { status: 500 });
+    return new Response("Error saving system: " + error.message, { status: 500 });
   }
 }
 
