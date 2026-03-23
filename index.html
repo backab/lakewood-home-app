@@ -209,8 +209,15 @@
       <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Task Name</label><input type="text" id="task-title" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30" required></div>
       <div><label class="block text-xs font-bold text-textmuted uppercase mb-1.5">Repeat</label>
         <select id="task-recurrence" class="w-full bg-oatmeal text-textmain rounded-2xl p-4 outline-none focus:ring-2 focus:ring-ochre/30">
-          <option value="none">Just this day</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="annual">Annually</option>
-        </select></div>
+          <option value="none">Just this day</option>
+          <option value="weekly">Weekly</option>
+          <option value="bi-weekly">Bi-weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="semi-annual">Semi-Annually</option>
+          <option value="annual">Annually</option>
+        </select>
+      </div>
       <label class="flex items-center gap-3 bg-oatmeal p-4 rounded-2xl cursor-pointer hover:bg-black/5 transition">
         <input type="checkbox" id="task-show-todo" class="w-5 h-5 accent-ochre rounded"><span class="text-sm font-bold text-textmain">Add to To-Do List</span></label>
       <div class="flex gap-3 pt-4">
