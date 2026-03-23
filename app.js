@@ -61,35 +61,49 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadDataFromCloud();
 
-  // --- RECURRENCE MATH ENGINE (FIXED DATE FORMATTING) --- //
+  // --- RECURRENCE MATH ENGINE (Now Bulletproof) --- //
   function getExpandedTasks() {
     let expanded = [];
     myTasks.forEach(task => {
-      // Strip off any weird timestamp/timezone artifacts the DB might have attached
-      let cleanDate = task.task_date ? task.task_date.split('T') : '';
-      task.task_date = cleanDate; 
-      
-      expanded.push(task); 
-      
-      if (task.recurrence && task.recurrence !== 'none' && cleanDate) {
-        // Bulletproof timezone math
-        let [y, m, d] = cleanDate.split('-');
-        let currDate = new Date(y, m - 1, d); 
+      try {
+        // SAFETY NET 1: Force the database value into a strict String so .split() never fails
+        let safeDateStr = task.task_date ? String(task.task_date) : '';
+        let cleanDate = safeDateStr.includes('T') ? safeDateStr.split('T') : safeDateStr;
         
-        for (let i = 0; i < 36; i++) {
-          if (task.recurrence === 'weekly') currDate.setDate(currDate.getDate() + 7);
-          else if (task.recurrence === 'bi-weekly') currDate.setDate(currDate.getDate() + 14);
-          else if (task.recurrence === 'monthly') currDate.setMonth(currDate.getMonth() + 1);
-          else if (task.recurrence === 'quarterly') currDate.setMonth(currDate.getMonth() + 3);
-          else if (task.recurrence === 'semi-annual') currDate.setMonth(currDate.getMonth() + 6);
-          else if (task.recurrence === 'annual') currDate.setFullYear(currDate.getFullYear() + 1);
+        task.task_date = cleanDate; 
+        expanded.push(task); 
+        
+        // SAFETY NET 2: Only attempt math if a valid date string actually exists
+        if (task.recurrence && task.recurrence !== 'none' && cleanDate && cleanDate.includes('-')) {
           
-          if (currDate.getFullYear() > new Date().getFullYear() + 3) break;
-          
-          // Reformat cleanly as YYYY-MM-DD
-          let nextDateStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
-          expanded.push({ ...task, task_date: nextDateStr, is_virtual: true });
+          let parts = cleanDate.split('-');
+          if (parts.length === 3) {
+            let y = parseInt(parts);
+            let m = parseInt(parts);
+            let d = parseInt(parts);
+            
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+              let currDate = new Date(y, m - 1, d); 
+              
+              for (let i = 0; i < 36; i++) {
+                if (task.recurrence === 'weekly') currDate.setDate(currDate.getDate() + 7);
+                else if (task.recurrence === 'bi-weekly') currDate.setDate(currDate.getDate() + 14);
+                else if (task.recurrence === 'monthly') currDate.setMonth(currDate.getMonth() + 1);
+                else if (task.recurrence === 'quarterly') currDate.setMonth(currDate.getMonth() + 3);
+                else if (task.recurrence === 'semi-annual') currDate.setMonth(currDate.getMonth() + 6);
+                else if (task.recurrence === 'annual') currDate.setFullYear(currDate.getFullYear() + 1);
+                
+                if (currDate.getFullYear() > new Date().getFullYear() + 3) break;
+                
+                let nextDateStr = `${currDate.getFullYear()}-${String(currDate.getMonth() + 1).padStart(2, '0')}-${String(currDate.getDate()).padStart(2, '0')}`;
+                expanded.push({ ...task, task_date: nextDateStr, is_virtual: true });
+              }
+            }
+          }
         }
+      } catch (e) {
+        // If one task is wildly corrupted, quietly log it and keep processing the rest!
+        console.error("Skipped corrupted task date:", task, e);
       }
     });
     return expanded; 
@@ -104,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     currentlyViewedSystem = sys;
     
-    // FIX: Safely load image, use a transparent pixel if none exists so it doesn't show a broken icon
+    // Safely load image, use a transparent pixel if none exists so it doesn't show a broken icon
     const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
     document.getElementById('detail-img').src = safeImgUrl;
     
@@ -240,7 +254,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement('div');
       card.className = "snap-center shrink-0 w-[85%] sm:w-[300px] bg-white rounded-[32px] p-2 shadow-soft border border-black/5 cursor-pointer";
       
-      // FIX: Safely load image for the system cards
       const safeImgUrl = (sys.image_url && sys.image_url !== 'null') ? sys.image_url : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
       
       card.innerHTML = `<div class="h-48 rounded-[24px] overflow-hidden relative mb-4"><img src="${safeImgUrl}" class="w-full h-full object-cover bg-black/5" /><div class="absolute inset-0 bg-gradient-to-t from-textmain/60 to-transparent"></div></div><div class="px-4 pb-4"><h3 class="text-xl font-serif font-bold text-textmain truncate">${sys.name}</h3><p class="text-sm text-textmuted mt-1 font-medium">${myTasks.filter(t => t.system_name === sys.name).length} Scheduled Tasks</p></div>`;
@@ -371,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
     
-    // FIX: Ensure we don't accidentally save the string "null" if no image exists
+    // Ensure we don't accidentally save the string "null" if no image exists
     document.getElementById('sys-existing-image').value = currentlyViewedSystem.image_url && currentlyViewedSystem.image_url !== 'null' ? currentlyViewedSystem.image_url : '';
     
     document.getElementById('sys-name').value = currentlyViewedSystem.name;
