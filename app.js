@@ -6,6 +6,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.addEventListener(eventType, callback);
   }
 
+  // 🚨 THE MEMORY VAULT: Grabs the file the millisecond you pick it to defeat iOS memory wipes
+  let pendingSystemImage = null;
+  let pendingSettingsImage = null;
+
+  attachListener('sys-image', 'change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      pendingSystemImage = e.target.files;
+    }
+  });
+
+  attachListener('home-img-upload', 'change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      pendingSettingsImage = e.target.files;
+    }
+  });
+
   // --- TAB SWITCHING ---
   const tabs = ['home', 'systems', 'tasks', 'calendar', 'profile'];
   window.switchTab = function(activeTab) {
@@ -30,23 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let myLogs = []; 
   let currentSelectedDate = ""; 
   let lastCompletedTodo = null; 
-
-  // 🚨 THE MEMORY VAULT: Holds files securely to defeat iOS PWA memory wipes
-  let pendingSystemImage = null;
-  let pendingSettingsImage = null;
-
-  // Immediate Capture: Grab the file the exact millisecond it's selected
-  attachListener('sys-image', 'change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      pendingSystemImage = e.target.files;
-    }
-  });
-
-  attachListener('home-img-upload', 'change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      pendingSettingsImage = e.target.files;
-    }
-  });
 
   async function loadDataFromCloud() {
     try {
@@ -410,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
     pendingSystemImage = null; // Clear vault
+    
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
     
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // Use the Vault for Settings Upload
+  // 🚨 Settings Upload using the Vault
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
@@ -460,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
-  // Use the Vault for Systems Upload
+  // 🚨 Systems Upload using the Vault
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -489,6 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form').reset();
     document.getElementById('sys-image').value = '';
     pendingSystemImage = null; // Clear vault
+    
     document.getElementById('system-form-modal').classList.add('hidden'); 
     btn.textContent = "Save"; 
     loadDataFromCloud();
