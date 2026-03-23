@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadDataFromCloud();
 
+  // --- RECURRENCE MATH ENGINE --- //
   function getExpandedTasks() {
     let expanded = [];
     myTasks.forEach(task => {
@@ -64,15 +65,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (task.recurrence && task.recurrence !== 'none') {
         let currDate = new Date(task.task_date);
         for (let i = 0; i < 36; i++) {
+          // New cadence logic!
           if (task.recurrence === 'weekly') currDate.setDate(currDate.getDate() + 7);
+          else if (task.recurrence === 'bi-weekly') currDate.setDate(currDate.getDate() + 14);
           else if (task.recurrence === 'monthly') currDate.setMonth(currDate.getMonth() + 1);
+          else if (task.recurrence === 'quarterly') currDate.setMonth(currDate.getMonth() + 3);
           else if (task.recurrence === 'semi-annual') currDate.setMonth(currDate.getMonth() + 6);
           else if (task.recurrence === 'annual') currDate.setFullYear(currDate.getFullYear() + 1);
+          
           if (currDate.getFullYear() > new Date().getFullYear() + 3) break;
-          expanded.push({ ...task, task_date: currDate.toISOString().split('T')[0], is_virtual: true });
+          expanded.push({ ...task, task_date: currDate.toISOString().split('T'), is_virtual: true });
         }
       }
     });
+    return expanded;
+  }
     return expanded;
   }
 
