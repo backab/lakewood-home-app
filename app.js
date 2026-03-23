@@ -1,44 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   
-  // --- UTILITY & IMAGE COMPRESSION ---
+  // --- UTILITY ---
   function attachListener(id, eventType, callback) {
     const el = document.getElementById(id);
     if (el) el.addEventListener(eventType, callback);
-  }
-
-  // 🚨 THE SHRINK RAY: Compresses iPhone photos before uploading
-  async function compressImage(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_SIZE = 1200; // Limits the longest edge to 1200px
-
-          if (width > height && width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-          } else if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          canvas.toBlob((blob) => {
-            resolve(new File([blob], "compressed_upload.jpg", { type: 'image/jpeg' }));
-          }, 'image/jpeg', 0.8); // 80% quality JPEG
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
   }
 
   // --- TAB SWITCHING ---
@@ -444,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
+  // REVERTED: Straight file upload for Settings
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
@@ -452,13 +418,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const fileInput = document.getElementById('home-img-upload'); 
     if(fileInput.files) {
-      btn.textContent = "Compressing Image...";
-      const compressed = await compressImage(fileInput.files);
-      formData.append('image', compressed);
+      formData.append('image', fileInput.files);
     }
     
     try {
-      btn.textContent = "Sending to Cloudflare...";
       const res = await fetch('/api/settings', { method: 'POST', body: formData });
       if (!res.ok) throw new Error(await res.text());
     } catch (err) {
@@ -479,10 +442,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
+  // REVERTED: Straight file upload for Systems
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
-    btn.textContent = "Processing...";
+    btn.textContent = "Uploading...";
     
     const formData = new FormData();
     formData.append('id', document.getElementById('sys-id').value);
@@ -495,15 +459,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const file = document.getElementById('sys-image').files; 
     if (file) {
-      btn.textContent = "Compressing Image...";
-      const compressed = await compressImage(file);
-      formData.append('image', compressed);
+      formData.append('image', file);
     }
     
     try {
-      btn.textContent = "Sending to Cloudflare...";
       const res = await fetch('/api/systems', { method: 'POST', body: formData });
-      if (!res.ok) throw new Error(await res.text()); // This tells us EXACTLY why it failed!
+      if (!res.ok) throw new Error(await res.text()); 
     } catch (err) {
       alert("System Upload Error: " + err.message);
     }
