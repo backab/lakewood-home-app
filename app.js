@@ -6,19 +6,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.addEventListener(eventType, callback);
   }
 
-  // 🚨 THE DEEP EXTRACT VAULT: Copies the physical bytes into RAM instantly
+  // 🚨 THE DEEP EXTRACT VAULT (Bracket-Proofed!)
   let pendingSystemImage = null;
   let pendingSettingsImage = null;
 
   attachListener('sys-image', 'change', (e) => {
-    const file = e.target.files;
+    // Using .item(0) instead of bracket zero
+    const file = e.target.files.item(0);
     if (!file) return;
     
-    // Read the actual physical bytes of the file immediately
     const reader = new FileReader();
     reader.onload = (event) => {
       pendingSystemImage = {
-        buffer: event.target.result, // The raw binary data
+        buffer: event.target.result, 
         name: file.name,
         type: file.type
       };
@@ -28,7 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   attachListener('home-img-upload', 'change', (e) => {
-    const file = e.target.files;
+    // Using .item(0) instead of bracket zero
+    const file = e.target.files.item(0);
     if (!file) return;
     
     const reader = new FileReader();
@@ -70,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadDataFromCloud() {
     try {
+      // We are using array destructuring here, which doesn't use numbers inside brackets, so it's safe
       const [tasksRes, sysRes, settingsRes, todosRes, logsRes] = await Promise.all([
         fetch('/api/tasks'), fetch('/api/systems'), fetch('/api/settings'), fetch('/api/todos'), fetch('/api/logs')
       ]);
@@ -98,13 +100,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadDataFromCloud();
 
-  // --- RECURRENCE MATH ENGINE --- //
+  // --- RECURRENCE MATH ENGINE (Bracket-Proofed) --- //
   function getExpandedTasks() {
     let expanded = [];
     myTasks.forEach(task => {
       try {
         let safeDateStr = task.task_date ? String(task.task_date) : '';
-        let cleanDate = safeDateStr.includes('T') ? safeDateStr.split('T') : safeDateStr;
+        // Using .shift() to grab the first element instead of bracket zero
+        let cleanDate = safeDateStr.includes('T') ? safeDateStr.split('T').shift() : safeDateStr;
         
         task.task_date = cleanDate; 
         expanded.push(task); 
@@ -113,9 +116,10 @@ document.addEventListener("DOMContentLoaded", () => {
           
           let parts = cleanDate.split('-');
           if (parts.length === 3) {
-            let y = parseInt(parts);
-            let m = parseInt(parts);
-            let d = parseInt(parts);
+            // Using .shift() to safely extract items sequentially without numbered brackets
+            let y = parseInt(parts.shift());
+            let m = parseInt(parts.shift());
+            let d = parseInt(parts.shift());
             
             if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
               let currDate = new Date(y, m - 1, d); 
@@ -194,7 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = document.getElementById('complete-task-title').textContent;
     const sysName = document.getElementById('complete-system-name').value;
     const notes = document.getElementById('complete-notes').value;
-    const today = new Date().toISOString().split('T');
+    // Using .shift() to grab the first element safely
+    const today = new Date().toISOString().split('T').shift();
 
     await fetch('/api/logs', { 
       method: 'POST', headers: {'Content-Type': 'application/json'}, 
@@ -226,7 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!task) return;
     let d = new Date(task.task_date);
     d.setDate(d.getDate() + parseInt(daysToAdd));
-    await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'push_back', id: id, new_date: d.toISOString().split('T') }) });
+    // Using .shift() to grab the first element safely
+    await fetch('/api/tasks', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'push_back', id: id, new_date: d.toISOString().split('T').shift() }) });
     document.getElementById('day-view-modal').classList.add('hidden'); 
     loadDataFromCloud(); 
   }
@@ -257,7 +263,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById('home-upcoming-tasks');
     if(!container) return;
     container.innerHTML = '';
-    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= new Date().toISOString().split('T') && !t.acknowledged);
+    // Using .shift() to grab the first element safely
+    let allUpcoming = getExpandedTasks().filter(t => t.task_date >= new Date().toISOString().split('T').shift() && !t.acknowledged);
     allUpcoming.sort((a, b) => new Date(a.task_date) - new Date(b.task_date));
     const nextThree = allUpcoming.slice(0, 3);
     
@@ -454,7 +461,6 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('title', document.getElementById('set-title').value); 
     formData.append('subtitle', document.getElementById('set-subtitle').value);
     
-    // 🚨 Convert the RAM buffer back into a file Cloudflare understands
     if (pendingSettingsImage) {
       const blob = new Blob([pendingSettingsImage.buffer], { type: pendingSettingsImage.type });
       formData.append('image', blob, pendingSettingsImage.name);
@@ -496,7 +502,6 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
     
-    // 🚨 Convert the RAM buffer back into a file Cloudflare understands
     if (pendingSystemImage) {
       const blob = new Blob([pendingSystemImage.buffer], { type: pendingSystemImage.type });
       formData.append('image', blob, pendingSystemImage.name);
