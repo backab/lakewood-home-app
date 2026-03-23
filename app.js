@@ -409,7 +409,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
     pendingSystemImage = null; // Clear vault
-    
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
     
@@ -427,13 +426,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // 🚨 Settings Upload using the Vault
+  // 🚨 THE FIX: Actually use the Vault for Settings Upload
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
     formData.append('title', document.getElementById('set-title').value); 
     formData.append('subtitle', document.getElementById('set-subtitle').value);
     
+    // Check the vault, not the HTML input box!
     if (pendingSettingsImage) {
       formData.append('image', pendingSettingsImage);
     }
@@ -460,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
-  // 🚨 Systems Upload using the Vault
+  // 🚨 THE FIX: Actually use the Vault for Systems Upload
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -475,6 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
     
+    // Check the vault, not the HTML input box!
     if (pendingSystemImage) {
       formData.append('image', pendingSystemImage);
     }
