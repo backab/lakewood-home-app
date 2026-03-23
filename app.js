@@ -364,10 +364,9 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('btn-add-system-task', 'click', () => { document.getElementById('system-detail-modal').classList.add('hidden'); document.getElementById('task-id').value = ''; document.getElementById('task-form').reset(); if(currentlyViewedSystem) document.getElementById('task-system').value = currentlyViewedSystem.name; document.getElementById('task-modal-title').textContent = "Add New Task"; document.getElementById('task-modal').classList.remove('hidden'); });
   attachListener('btn-day-add-task', 'click', () => { document.getElementById('day-view-modal').classList.add('hidden'); document.getElementById('task-form').reset(); document.getElementById('task-id').value = ''; document.getElementById('task-date').value = currentSelectedDate; document.getElementById('task-modal-title').textContent = "Add New Task"; document.getElementById('task-modal').classList.remove('hidden'); });
   
-  // 🚨 THE FIX: Reset the form AND clear the image file input when adding a new system
   attachListener('btn-add-system', 'click', () => { 
     document.getElementById('system-form').reset(); 
-    document.getElementById('sys-image').value = ''; // Wipes the "ghost file"
+    document.getElementById('sys-image').value = ''; 
 
     document.getElementById('sys-id').value = ""; 
     document.getElementById('sys-existing-image').value = ""; 
@@ -386,12 +385,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('btn-delete-sys', 'click', async (e) => { e.preventDefault(); if(!confirm("Are you sure you want to delete this system?")) return; const id = document.getElementById('sys-id').value; await fetch(`/api/systems?id=${id}`, { method: 'DELETE' }); document.getElementById('system-form-modal').classList.add('hidden'); loadDataFromCloud(); });
 
-  // 🚨 THE FIX: Reset the form AND clear the image file input when editing a system
   attachListener('btn-edit-sys-detail', 'click', () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     
     document.getElementById('system-form').reset(); 
-    document.getElementById('sys-image').value = ''; // Wipes the "ghost file"
+    document.getElementById('sys-image').value = ''; 
 
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
@@ -408,14 +406,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // 🚨 THE FIX: Wipe the Profile file input after saving
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); formData.append('title', document.getElementById('set-title').value); formData.append('subtitle', document.getElementById('set-subtitle').value);
     const fileInput = document.getElementById('home-img-upload'); if(fileInput.files) formData.append('image', fileInput.files);
     await fetch('/api/settings', { method: 'POST', body: formData }); 
 
-    document.getElementById('home-img-upload').value = ''; // Wipes the ghost file
+    document.getElementById('home-img-upload').value = ''; 
 
     btn.textContent = "Sync to Cloud"; loadDataFromCloud();
   });
@@ -423,4 +420,29 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('task-form', 'submit', async (e) => {
     e.preventDefault(); 
     const id = document.getElementById('task-id').value;
-    const task
+    const taskData = { task_date: document.getElementById('task-date').value, system_name: document.getElementById('task-system').value, task_title: document.getElementById('task-title').value, recurrence: document.getElementById('task-recurrence').value, show_in_todo: document.getElementById('task-show-todo').checked };
+    if (id) taskData.id = id;
+    await fetch('/api/tasks', { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(taskData) });
+    document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
+  });
+
+  attachListener('system-form', 'submit', async (e) => {
+    e.preventDefault(); const btn = e.target.querySelector('button[type="submit"]'); btn.textContent = "Saving...";
+    const formData = new FormData();
+    formData.append('id', document.getElementById('sys-id').value);
+    formData.append('existing_image_url', document.getElementById('sys-existing-image').value);
+    formData.append('name', document.getElementById('sys-name').value);
+    formData.append('description', document.getElementById('sys-desc').value);
+    formData.append('vendor_name', document.getElementById('sys-vendor-name').value); 
+    formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
+    formData.append('doc_link', document.getElementById('sys-link').value);
+    const file = document.getElementById('sys-image').files; if (file) formData.append('image', file);
+    await fetch('/api/systems', { method: 'POST', body: formData });
+    
+    document.getElementById('system-form').reset();
+    document.getElementById('sys-image').value = '';
+
+    document.getElementById('system-form-modal').classList.add('hidden'); btn.textContent = "Save"; loadDataFromCloud();
+  });
+
+});
