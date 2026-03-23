@@ -6,20 +6,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.addEventListener(eventType, callback);
   }
 
-  // 🚨 THE MEMORY VAULT: Grabs the file the millisecond you pick it to defeat iOS memory wipes
+  // 🚨 THE DEEP EXTRACT VAULT: Copies the physical bytes into RAM instantly
   let pendingSystemImage = null;
   let pendingSettingsImage = null;
 
   attachListener('sys-image', 'change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      pendingSystemImage = e.target.files;
-    }
+    const file = e.target.files;
+    if (!file) return;
+    
+    // Read the actual physical bytes of the file immediately
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      pendingSystemImage = {
+        buffer: event.target.result, // The raw binary data
+        name: file.name,
+        type: file.type
+      };
+      console.log("System image securely locked in RAM vault.");
+    };
+    reader.readAsArrayBuffer(file);
   });
 
   attachListener('home-img-upload', 'change', (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      pendingSettingsImage = e.target.files;
-    }
+    const file = e.target.files;
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      pendingSettingsImage = {
+        buffer: event.target.result,
+        name: file.name,
+        type: file.type
+      };
+      console.log("Settings image securely locked in RAM vault.");
+    };
+    reader.readAsArrayBuffer(file);
   });
 
   // --- TAB SWITCHING ---
@@ -386,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
   attachListener('btn-add-system', 'click', () => { 
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
-    pendingSystemImage = null; // Clear vault
+    pendingSystemImage = null; 
     document.getElementById('sys-id').value = ""; 
     document.getElementById('sys-existing-image').value = ""; 
     document.getElementById('sys-modal-title').textContent = "Add Home System"; 
@@ -408,7 +429,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('system-detail-modal').classList.add('hidden');
     document.getElementById('system-form').reset(); 
     document.getElementById('sys-image').value = ''; 
-    pendingSystemImage = null; // Clear vault
+    pendingSystemImage = null; 
+    
     document.getElementById('sys-modal-title').textContent = "Edit System";
     document.getElementById('sys-id').value = currentlyViewedSystem.id;
     
@@ -426,16 +448,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   attachListener('todo-form', 'submit', async(e) => { e.preventDefault(); const input = document.getElementById('todo-input'); await fetch('/api/todos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: input.value}) }); input.value = ''; loadDataFromCloud(); });
 
-  // 🚨 THE FIX: Actually use the Vault for Settings Upload
   attachListener('settings-form', 'submit', async(e) => {
     e.preventDefault(); const btn = e.target.querySelector('button'); btn.textContent = "Syncing...";
     const formData = new FormData(); 
     formData.append('title', document.getElementById('set-title').value); 
     formData.append('subtitle', document.getElementById('set-subtitle').value);
     
-    // Check the vault, not the HTML input box!
+    // 🚨 Convert the RAM buffer back into a file Cloudflare understands
     if (pendingSettingsImage) {
-      formData.append('image', pendingSettingsImage);
+      const blob = new Blob([pendingSettingsImage.buffer], { type: pendingSettingsImage.type });
+      formData.append('image', blob, pendingSettingsImage.name);
     }
     
     try {
@@ -446,7 +468,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById('home-img-upload').value = ''; 
-    pendingSettingsImage = null; // Clear vault
+    pendingSettingsImage = null; 
     btn.textContent = "Sync to Cloud"; 
     loadDataFromCloud();
   });
@@ -460,7 +482,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('task-modal').classList.add('hidden'); loadDataFromCloud(); 
   });
 
-  // 🚨 THE FIX: Actually use the Vault for Systems Upload
   attachListener('system-form', 'submit', async (e) => {
     e.preventDefault(); 
     const btn = e.target.querySelector('button[type="submit"]'); 
@@ -475,9 +496,10 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append('vendor_phone', document.getElementById('sys-vendor-phone').value); 
     formData.append('doc_link', document.getElementById('sys-link').value);
     
-    // Check the vault, not the HTML input box!
+    // 🚨 Convert the RAM buffer back into a file Cloudflare understands
     if (pendingSystemImage) {
-      formData.append('image', pendingSystemImage);
+      const blob = new Blob([pendingSystemImage.buffer], { type: pendingSystemImage.type });
+      formData.append('image', blob, pendingSystemImage.name);
     }
     
     try {
@@ -489,7 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.getElementById('system-form').reset();
     document.getElementById('sys-image').value = '';
-    pendingSystemImage = null; // Clear vault
+    pendingSystemImage = null; 
     
     document.getElementById('system-form-modal').classList.add('hidden'); 
     btn.textContent = "Save"; 
